@@ -1,4 +1,5 @@
 void _strwirite(char* str) {
+    // Video memory start address
     char * p_strdst = (char*) 0xb8000;
     while(*str){
         *p_strdst = *str++;
