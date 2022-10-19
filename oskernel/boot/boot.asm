@@ -8,14 +8,21 @@ _start:
 
 start:
     cli
-    mov     ax, 0x7c0
-    mov     ss, ax
-    mov     ds, ax
-    mov     es, ax
+    mov ax, 0x7c0
+    mov ds, ax
+    mov es, ax
+    mov ax, 0x00
+    mov ss, ax
+    mov sp, 0x7c00
     sti
+
+    mov word [ss:0x00], handle_zero
+    mov word [ss:0x02], 0x7c0
 
     mov si, message
     call print
+
+    int 0
 
     jmp $
 
@@ -32,6 +39,13 @@ print:
     
 .done:
     ret
+
+handle_zero:
+    mov ah, 0x0e
+    mov bx, 0x00
+    mov al, 'A'
+    int 0x10
+    iret
 
 message:
     db "Hello world!", 0
