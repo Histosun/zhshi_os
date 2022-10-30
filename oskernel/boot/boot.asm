@@ -1,4 +1,4 @@
-ORG 0x0
+ORG 0x7c00
 BITS 16
 
 _start:
@@ -8,7 +8,7 @@ _start:
 
 start:
     cli
-    mov     ax, 0x7c0
+    mov     ax, 0
     mov     ss, ax
     mov     ds, ax
     mov     es, ax
