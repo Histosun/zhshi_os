@@ -1,11 +1,22 @@
 BUILD:=./build
+BIN:=./bin
+FILES = ${BUILD}/kernel.o
 
+all: ${BIN}/boot.bin ${BIN}/kernel.bin
+	rm -rf ${BIN}/os.bin
+	dd if=${BIN}/boot.bin >> ${BIN}/os.bin
+	dd if=${BIN}/kernel.bin >> ${BIN}/os.bin
+	dd if=/dev/zero bs=512 count=100 >> ${BIN}/os.bin
 
-all: ${BUILD}/boot/boot.o
+${BIN}/kernel.bin: ${FILES}
+	i686-elf-ld -g -relocatable $(FILES) -o ${BUILD}/kernelfull.o
+	i686-elf-gcc -T ./oskernel/linker.ld -o ${BIN}/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
-${BUILD}/boot/%.o: oskernel/boot/%.asm
-	$(shell mkdir -p ${BUILD}/boot)
-	nasm $< -o $@
+${BIN}/boot.bin: ./oskernel/boot/boot.asm
+	nasm -f bin $< -o $@
+
+${BUILD}/%.o: ./oskernel/%.asm
+	nasm -f elf -g $< -o $@
 
 clean:
 	$(shell rm -rf ${BUILD})

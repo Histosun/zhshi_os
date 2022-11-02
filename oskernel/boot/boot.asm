@@ -24,8 +24,10 @@ start:
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
+    jmp $
 
-    jmp CODE_SEG:protected_entrance
+    
+    ;jmp CODE_SEG:protected_entrance
 
 gdt_start:
 gdt_null:
@@ -53,10 +55,6 @@ gdt_descriptor:
 
 print:
     mov ah, 0x0e
-
-[BITS 32]
-protected_entrance:
-    jmp $
 
 times 510 - ($ - $$) db 0
 db 0x55, 0xaa
