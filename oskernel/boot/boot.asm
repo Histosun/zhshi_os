@@ -12,10 +12,11 @@ _start:
 
 start:
     cli
-    mov     ax, 0
-    mov     ss, ax
-    mov     ds, ax
-    mov     es, ax
+    mov ax, 0
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov sp, 0x7c00
     sti
 
 .to_protected_mode:
@@ -24,10 +25,7 @@ start:
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
-    jmp $
-
-    
-    ;jmp CODE_SEG:protected_entrance
+    jmp CODE_SEG:protected_entrance
 
 gdt_start:
 gdt_null:
@@ -53,8 +51,62 @@ gdt_descriptor:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
-print:
-    mov ah, 0x0e
+[BITS 32]
+protected_entrance:
+    mov ebx, 1
+    mov ecx, 100
+    mov edi, 0x100000
+    call ata_lba_read
+    jmp CODE_SEG:0x100000
+
+ata_lba_read:
+    mov eax, ebx
+    ; LBA low
+    mov dx, 0x1f3
+    out dx, al
+
+    ; LBA mid
+    mov dx, 0x1f4
+    shr eax, 8
+    out dx, al
+
+    ; LBA high
+    mov dx, 0x1f5
+    shr eax, 16
+    out dx, al
+
+    mov dx, 0x1f6
+    shr eax, 8
+    and al, 0x0f
+    or al, 0xe0
+    out dx, al
+    
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+
+.next_sector:
+    push ecx
+
+
+    mov dx, 0x1f7
+.check_hd:
+    in al, dx
+    test al, 8
+    jz .check_hd
+
+.read_hd:
+    mov ecx, 256
+    mov dx, 0x1f0
+    rep insw
+
+    pop ecx
+    loop .next_sector
+
+    ret
+
+
 
 times 510 - ($ - $$) db 0
 db 0x55, 0xaa

@@ -12,8 +12,11 @@ _start:
     mov gs, ax
     mov ss, ax
 
+    ; enable A20 line
     in al, 0x92
     or al, 0x2
     out 0x92, al
 
     jmp $
+
+times 512 - ($ - $$) db 0

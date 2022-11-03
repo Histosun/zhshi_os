@@ -20,6 +20,9 @@ ${BUILD}/%.o: ./oskernel/%.asm
 
 clean:
 	$(shell rm -rf ${BUILD})
+	$(shell rm -rf ${BIN})
+	$(shell mkdir ${BIN})
+	$(shell mkdir ${BUILD})
 
 bochs:
 	bochs -q -f bochsrc
@@ -31,4 +34,4 @@ qemu:
 	qemu-system-x86_64 -m 32M -fda a.img
 
 qemu_bin:
-	qemu-system-x86_64 -hda ${BUILD}/boot/boot.o
+	qemu-system-x86_64 -hda ${BIN}/os.bin
