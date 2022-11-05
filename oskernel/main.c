@@ -1,4 +1,4 @@
-#include "kernel.h"
+#define VIDEO_MEM 0xB8000
 
 void kernel_main(){
     char * video_mem = (char *) VIDEO_MEM;

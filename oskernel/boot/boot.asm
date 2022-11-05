@@ -2,6 +2,7 @@ ORG 0x7c00
 
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
+KERNEL_START equ 0x100000
 
 [section .text]
 [BITS 16]
@@ -22,9 +23,16 @@ start:
 .to_protected_mode:
     cli
     lgdt[gdt_descriptor]
+
+    ; enable A20 line
+    in al, 0x92
+    or al, 0x2
+    out 0x92, al
+
     mov eax, cr0
     or eax, 0x1
     mov cr0, eax
+
     jmp CODE_SEG:protected_entrance
 
 gdt_start:
@@ -54,7 +62,7 @@ gdt_descriptor:
 [BITS 32]
 protected_entrance:
     mov ebx, 1
-    mov ecx, 100
+    mov ecx, 60
     mov edi, 0x100000
     call ata_lba_read
     jmp CODE_SEG:0x100000
