@@ -61,6 +61,15 @@ gdt_descriptor:
 
 [BITS 32]
 protected_entrance:
+    cli
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov esp, 0x9fc00
+    
     mov ebx, 1
     mov ecx, 60
     mov edi, 0x100000
