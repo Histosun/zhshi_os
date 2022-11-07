@@ -52,10 +52,7 @@ bochs:
 	bochs -q -f bochsrc
 
 qemug:
-	qemu-system-x86_64 -m 32M -fda $(BUILD)/$(HD_IMG_NAME) -S -s
+	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME) -S -s
 
 qemu:
 	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME)
-
-qemu_bin:
-	qemu-system-x86_64 -hda ${BIN}/os.bin

@@ -3,4 +3,4 @@ project(ZhOS C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(ZhOS main.c tools/floppy.c tools/fileinfo.c)
+add_executable(ZhOS src/main.c)

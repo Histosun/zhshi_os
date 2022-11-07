@@ -72,9 +72,9 @@ protected_entrance:
     
     mov ebx, 1
     mov ecx, 60
-    mov edi, 0x100000
+    mov edi, KERNEL_START
     call ata_lba_read
-    jmp CODE_SEG:0x100000
+    jmp CODE_SEG:KERNEL_START
 
 ata_lba_read:
     mov eax, ebx
