@@ -1,6 +1,6 @@
 BUILD:=./build
 BIN:=./bin
-FILES = ${BUILD}/boot/boot.o ${BUILD}/setup.o ${BUILD}/system.bin
+FILES = ${BUILD}/boot/boot.bin ${BUILD}/setup.o ${BUILD}/kernel.bin
 INCLUDES = -I./oskernel
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -21,14 +21,14 @@ HD_IMG_NAME:= "hd.img"
 all: ${FILES}
 	$(shell rm -rf $(BUILD)/$(HD_IMG_NAME))
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
-	dd if=${BUILD}/boot/boot.o of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
-	dd if=${BUILD}/system.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=60 conv=notrunc
+	dd if=${BUILD}/boot/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
+	dd if=${BUILD}/kernel.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=60 conv=notrunc
 
-${BUILD}/system.bin: ${BUILD}/kernel.bin
-	objcopy -O binary ${BUILD}/kernel.bin ${BUILD}/system.bin
+${BUILD}/kernel.bin: ${BUILD}/kernel.o
+	objcopy -O binary ${BUILD}/kernel.o ${BUILD}/kernel.bin
 	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/kernel.bin: ${BUILD}/setup.o ${BUILD}/main.o
+${BUILD}/kernel.o: ${BUILD}/setup.o ${BUILD}/main.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x100000
 
 ${BUILD}/main.o: ./src/main.c
@@ -38,7 +38,7 @@ ${BUILD}/main.o: ./src/main.c
 ${BUILD}/setup.o: ./src/setup.asm
 	nasm -f elf32 -g $< -o $@
 
-${BUILD}/boot/boot.o: ./src/boot/boot.asm
+${BUILD}/boot/boot.bin: ./src/boot/boot.asm
 	$(shell mkdir -p ${BUILD}/boot)
 	nasm $< -o $@
 
