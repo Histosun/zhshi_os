@@ -1,6 +1,6 @@
 BUILD:=./build
 BIN:=./bin
-FILES = ${BUILD}/boot/boot.bin ${BUILD}/setup.o ${BUILD}/kernel.bin
+FILES = ${BIN}/boot.bin ${BIN}/setup.bin
 INCLUDES = -I./oskernel
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -21,25 +21,35 @@ HD_IMG_NAME:= "hd.img"
 all: ${FILES}
 	$(shell rm -rf $(BUILD)/$(HD_IMG_NAME))
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
-	dd if=${BUILD}/boot/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
-	dd if=${BUILD}/kernel.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=60 conv=notrunc
+	dd if=${BIN}/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
+	dd if=${BIN}/setup.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=4 conv=notrunc
 
-${BUILD}/kernel.bin: ${BUILD}/kernel.o
-	objcopy -O binary ${BUILD}/kernel.o ${BUILD}/kernel.bin
-	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
+${BIN}/setup.bin: ${BUILD}/boot/setup.o
+	objcopy -O binary $< $@
+#	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/kernel.o: ${BUILD}/setup.o ${BUILD}/main.o
-	ld -m elf_i386 $^ -o $@ -Ttext 0x100000
+${BUILD}/boot/setup.o: ${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o
+	ld -m elf_i386 $^ -o $@ -Ttext 0x500
 
-${BUILD}/main.o: ./src/main.c
+${BUILD}/boot/setup_c.o: ./src/boot/setup.c
 	$(shell mkdir -p ${BUILD}/init)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
-${BUILD}/setup.o: ./src/setup.asm
+${BUILD}/boot/setup_asm.o: src/boot/setup.asm
 	nasm -f elf32 -g $< -o $@
 
-${BUILD}/boot/boot.bin: ./src/boot/boot.asm
+#${BUILD}/main.o: ./src/main.c
+#	$(shell mkdir -p ${BUILD}/init)
+#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+
+#${BUILD}/setup.o: src/boot/setup.asm
+#	nasm -f elf32 -g $< -o $@
+
+${BIN}/boot.bin: ./src/boot/boot.asm
 	$(shell mkdir -p ${BUILD}/boot)
+	nasm $< -o $@
+
+${BUILD}/boot/%.o: ./src/boot/%.asm
 	nasm $< -o $@
 
 clean:

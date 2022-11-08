@@ -1,8 +1,6 @@
 ORG 0x7c00
 
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start
-KERNEL_START equ 0x100000
+SETUP_START equ 0x500
 
 [section .text]
 [BITS 16]
@@ -17,64 +15,17 @@ start:
     mov ss, ax
     mov ds, ax
     mov es, ax
+    mov fs, ax
+    mov gs, ax
     mov sp, 0x7c00
     sti
 
-.to_protected_mode:
-    cli
-    lgdt[gdt_descriptor]
-
-    ; enable A20 line
-    in al, 0x92
-    or al, 0x2
-    out 0x92, al
-
-    mov eax, cr0
-    or eax, 0x1
-    mov cr0, eax
-
-    jmp CODE_SEG:protected_entrance
-
-gdt_start:
-gdt_null:
-    dd 0x0
-    dd 0x0
-gdt_code:   ; cs point to this
-    dw 0xffff   ; Limit 0-15
-    dw 0x0      ; Base 0-15
-    db 0x0      ; Base 16-23
-    db 0x9a     ; Access byte
-    db 0xcf     ; flags and limit 16-19
-    db 0x0      ; Base 23-31
-gdt_data:   ; ds, ss, fs, gs point to this
-    dw 0xffff   ; Limit 0-15
-    dw 0x0      ; Base 0-15
-    db 0x0      ; Base 16-23
-    db 0x92     ; Access byte
-    db 0xcf     ; flags and limit 16-19
-    db 0x0      ; Base 23-31
-gdt_end:
-
-gdt_descriptor:
-    dw gdt_end - gdt_start - 1
-    dd gdt_start
-
-[BITS 32]
-protected_entrance:
-    cli
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov esp, 0x9fc00
-    
     mov ebx, 1
-    mov ecx, 60
-    mov edi, KERNEL_START
+    mov ecx, 4
+    mov edi, SETUP_START
     call ata_lba_read
-    jmp CODE_SEG:KERNEL_START
+
+    jmp 0x0:SETUP_START
 
 ata_lba_read:
     mov eax, ebx
