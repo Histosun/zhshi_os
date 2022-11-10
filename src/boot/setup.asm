@@ -5,11 +5,23 @@ extern setup_main
 
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
+
 KERNEL_START equ 0x200000
+E820_DESC equ 0x5000
+E820_ADR equ E820_DESC + 4
 
 _start:
+    mov ax, 0
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov sp, 0x7c00
 
-.to_protected_mode:
+    call get_mmap
+
+.to_protected_mode: ; switch to protected mode
     cli
     lgdt[gdt_descriptor]
 
@@ -23,6 +35,34 @@ _start:
     mov cr0, eax
 
     jmp CODE_SEG:protected_entrance
+
+get_mmap:
+    xor ebx, ebx
+    xor esi, esi
+    mov edi, E820_ADR
+
+loop:
+	mov eax, 0xe820
+	mov ecx, 20
+	mov edx, 0x534d4150
+	int 15h
+    jc .1
+
+    inc esi
+    add edi, 20
+
+	cmp ebx,0
+	jne loop
+
+	jmp .2
+
+.1:
+    xor esi, esi
+
+.2:
+	mov dword[E820_DESC], esi
+	ret
+    
 
 [BITS 32]
 protected_entrance:
