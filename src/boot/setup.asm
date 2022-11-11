@@ -76,6 +76,8 @@ protected_entrance:
     mov esp, 0x9fc00
 
     call setup_main
+    int 0
+    jmp $
 
     mov ebx, 5
     mov ecx, 60

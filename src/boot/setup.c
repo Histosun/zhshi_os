@@ -1,5 +1,5 @@
 #include "../include/type.h"
-#include "../include/string.h"
+#include "../include/idt.h"
 
 #define VIDEO_MEM 0xB8000
 #define E820_DESC 0x5000
@@ -17,6 +17,8 @@ typedef struct e820_desc {
 }__attribute__((packed)) e820_desc_t;
 
 void setup_main(){
+    idt_init();
+
     e820_desc_t * mem = (e820_desc_t *)E820_DESC;
 
     char * video_mem = (char *) VIDEO_MEM;

@@ -2,7 +2,7 @@ BUILD:=./build
 BIN:=./bin
 FILES = ${BIN}/boot.bin ${BIN}/setup.bin
 INCLUDES = -I./oskernel
-FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+#FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
 CFLAGS:= -m32 # 32 bit program
 CFLAGS+= -masm=intel
@@ -28,19 +28,31 @@ ${BIN}/setup.bin: ${BUILD}/boot/setup.o
 	objcopy -O binary $< $@
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/boot/setup.o: ${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o ${BUILD}/lib/string.o
+${BUILD}/boot/setup.o:${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o ${BUILD}/idt/idt_asm.o ${BUILD}/idt/idt_c.o ${BUILD}/memory/mem.o ${BUILD}/lib/string.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x500
 
 ${BUILD}/boot/setup_c.o: ./src/boot/setup.c
 	$(shell mkdir -p ${BUILD}/boot)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
+${BUILD}/boot/setup_asm.o: ./src/boot/setup.asm
+	nasm -f elf32 -g $< -o $@
+
 ${BUILD}/lib/string.o: ./src/lib/string.c
 	$(shell mkdir -p ${BUILD}/lib)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
-${BUILD}/boot/setup_asm.o: src/boot/setup.asm
+
+${BUILD}/idt/idt_c.o: ./src/idt/idt.c
+	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+
+${BUILD}/idt/idt_asm.o: ./src/idt/idt.asm
+	$(shell mkdir -p ${BUILD}/idt)
 	nasm -f elf32 -g $< -o $@
+
+${BUILD}/memory/mem.o: ./src/memory/mem.c
+	$(shell mkdir -p ${BUILD}/memory)
+	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 #${BUILD}/main.o: ./src/main.c
 #	$(shell mkdir -p ${BUILD}/init)
@@ -65,8 +77,8 @@ clean:
 bochs:
 	bochs -q -f bochsrc
 
-qemug:
+qemug: all
 	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME) -S -s
 
-qemu:
+qemu: all
 	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME)
