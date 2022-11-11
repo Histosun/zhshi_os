@@ -28,11 +28,15 @@ ${BIN}/setup.bin: ${BUILD}/boot/setup.o
 	objcopy -O binary $< $@
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/boot/setup.o: ${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o
+${BUILD}/boot/setup.o: ${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o ${BUILD}/lib/string.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x500
 
 ${BUILD}/boot/setup_c.o: ./src/boot/setup.c
-	$(shell mkdir -p ${BUILD}/init)
+	$(shell mkdir -p ${BUILD}/boot)
+	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+
+${BUILD}/lib/string.o: ./src/lib/string.c
+	$(shell mkdir -p ${BUILD}/lib)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 ${BUILD}/boot/setup_asm.o: src/boot/setup.asm

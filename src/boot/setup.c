@@ -1,4 +1,5 @@
 #include "../include/type.h"
+#include "../include/string.h"
 
 #define VIDEO_MEM 0xB8000
 #define E820_DESC 0x5000
