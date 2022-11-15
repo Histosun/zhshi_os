@@ -15,7 +15,7 @@ void idt_0(){
     video_mem[3] = 15;
 }
 
-void idt_set(int i, void* address){
+void set_idt(int i, void* address){
     int_descriptors[i].zero=0;
     int_descriptors[i].offset_0=(uint32_t) address & 0x0000ffff;
     int_descriptors[i].selector=KERNEL_CODE_SELECTOR;
@@ -24,7 +24,7 @@ void idt_set(int i, void* address){
     int_descriptors[i].offset_1=((uint32_t) address) >> 16;
 }
 
-void idt_init(){
+void init_idt(){
     memset(int_descriptors, 0, sizeof(int_descriptors));
     idtr_descriptor.limit=sizeof(int_descriptors)-1;
     idtr_descriptor.base=(uint32_t)int_descriptors;

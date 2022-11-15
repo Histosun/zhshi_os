@@ -17,7 +17,9 @@ typedef struct e820_desc {
 }__attribute__((packed)) e820_desc_t;
 
 void setup_main(){
-    idt_init();
+    init_idt();
+
+
 
     e820_desc_t * mem = (e820_desc_t *)E820_DESC;
 
