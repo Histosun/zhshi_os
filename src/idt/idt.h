@@ -1,6 +1,6 @@
 #ifndef IDT_H
 #define IDT_H
-#include "type.h"
+#include "../include/type.h"
 
 #define IDT_MAX 512
 
@@ -17,5 +17,5 @@ typedef struct idtr_desc {
     uint32_t base;      // Base address of IDT
 }__attribute__((packed)) idtr_desc_t;
 
-void idt_init();
+void init_idt();
 #endif

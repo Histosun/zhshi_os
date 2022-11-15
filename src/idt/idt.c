@@ -1,4 +1,4 @@
-#include "../include/idt.h"
+#include "idt.h"
 #include "../include/mem.h"
 #include "../include/config.h"
 
@@ -31,5 +31,5 @@ void init_idt(){
 
     idtr_desc_t* desc = &idtr_descriptor;
     load_idt(&idtr_descriptor);
-    idt_set(0, &idt_0);
+    set_idt(0, &idt_0);
 }

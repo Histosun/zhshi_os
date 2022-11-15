@@ -1,5 +1,5 @@
 #include "../include/type.h"
-#include "../include/idt.h"
+#include "../idt/idt.h"
 
 #define VIDEO_MEM 0xB8000
 #define E820_DESC 0x5000
