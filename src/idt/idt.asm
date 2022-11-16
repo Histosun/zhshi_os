@@ -1,5 +1,5 @@
+[SECTION .text]
 [BITS 32]
-[SECTION .asm]
 global load_idt
 load_idt:
     push ebp

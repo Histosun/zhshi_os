@@ -1,8 +1,8 @@
-[BITS 16]
 global _start
-
 extern setup_main
 extern setup_die
+[SECTION .text]
+[BITS 16]
 
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
@@ -80,13 +80,11 @@ protected_entrance:
     call chk_cpu_long_mode
 
     call setup_main
-    jmp $
 
     mov ebx, 5
     mov ecx, 60
     mov edi, KERNEL_START
     call ata_lba_read
-    jmp $
     jmp CODE_SEG:KERNEL_START
 
 ata_lba_read:

@@ -1,6 +1,6 @@
 BUILD:=./build
 BIN:=./bin
-FILES = ${BIN}/boot.bin ${BIN}/setup.bin
+FILES = ${BIN}/boot.bin ${BIN}/setup.bin ${BIN}/kernel.bin
 INCLUDES = -I./oskernel
 #FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -14,6 +14,16 @@ CFLAGS+= -nostdlib		# no std lib
 CFLAGS+= -fno-stack-protector	# no stack protector
 CFLAGS:= $(strip ${CFLAGS})
 
+CFLAGS_64:= -m64 # 64 bit program
+CFLAGS_64+= -masm=intel
+CFLAGS_64+= -fno-builtin	# no gcc built-in function
+CFLAGS_64+= -nostdinc		# no std head file
+CFLAGS_64+= -fno-pic		# position independent code
+CFLAGS_64+= -fno-pie		# position independent executable
+CFLAGS_64+= -nostdlib		# no std lib
+CFLAGS_64+= -fno-stack-protector	# no stack protector
+CFLAGS_64:= $(strip ${CFLAGS_64})
+
 DEBUG:= -g
 
 HD_IMG_NAME:= "hd.img"
@@ -23,7 +33,14 @@ all: ${FILES}
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
 	dd if=${BIN}/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
 	dd if=${BIN}/setup.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=4 conv=notrunc
+	dd if=${BIN}/kernel.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=5 count=60 conv=notrunc
 
+#boot.bin
+${BIN}/boot.bin: ./src/boot/boot.asm
+	$(shell mkdir -p ${BUILD}/boot)
+	nasm $< -o $@
+
+# setup.bin
 ${BIN}/setup.bin: ${BUILD}/boot/setup.o
 	objcopy -O binary $< $@
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
@@ -54,19 +71,29 @@ ${BUILD}/memory/mem.o: ./src/memory/mem.c
 	$(shell mkdir -p ${BUILD}/memory)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
+# kernel.bin
+${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
+	objcopy -O binary $< $@
+#	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
+
+${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o
+	ld -m elf_x86_64 $^ -o $@ -Ttext 0x200000
+
+${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
+	$(shell mkdir -p ${BUILD}/kernel)
+	nasm -f elf64 -g $< -o $@
+
+${BUILD}/kernel/kernel_c.o: ./src/kernel/kernel.c
+	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+
+#kernel.bin
+
 #${BUILD}/main.o: ./src/main.c
 #	$(shell mkdir -p ${BUILD}/init)
 #	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 #${BUILD}/setup.o: src/boot/setup.asm
 #	nasm -f elf32 -g $< -o $@
-
-${BIN}/boot.bin: ./src/boot/boot.asm
-	$(shell mkdir -p ${BUILD}/boot)
-	nasm $< -o $@
-
-${BUILD}/boot/%.o: ./src/boot/%.asm
-	nasm $< -o $@
 
 clean:
 	$(shell rm -rf ${BUILD})
@@ -78,7 +105,7 @@ bochs:
 	bochs -q -f bochsrc
 
 qemug: all
-	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME) -S -s
+	qemu-system-x86_64 -hda $(BUILD)/$(HD_IMG_NAME) -S -s
 
 qemu: all
-	qemu-system-x86_64 -m 32M -hda $(BUILD)/$(HD_IMG_NAME)
+	qemu-system-x86_64 -hda $(BUILD)/$(HD_IMG_NAME)
