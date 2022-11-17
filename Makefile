@@ -79,7 +79,7 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 	objcopy -O binary $< $@
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o
+${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o ${BUILD}/hal/hal_init.o ${BUILD}/hal/hal_console.o
 	ld -m elf_x86_64 $^ -o $@ -Ttext 0x200000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
@@ -87,6 +87,10 @@ ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 	nasm -f elf64 -g $< -o $@
 
 ${BUILD}/kernel/kernel_c.o: ./src/kernel/kernel.c
+	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+
+${BUILD}/hal/%.o: ./src/hal/%.c
+	$(shell mkdir -p ${BUILD}/hal)
 	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
 
 #kernel.bin
