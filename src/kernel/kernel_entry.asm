@@ -18,7 +18,7 @@ _start:
 	mov ss,ax
 	mov fs,ax
 	mov gs,ax
-    lgdt [eGdtPtr]
+    lgdt [gdt_desc]
 ;enable PAE
     mov eax, cr4
     bts eax, 5                      ; CR4.PAE = 1
@@ -37,8 +37,8 @@ _start:
 ;enable CACHE
     btr eax,29		;CR0.NW=0
     btr eax,30		;CR0.CD=0  CACHE
-
     mov cr0, eax                    ; IA32_EFER.LMA = 1
+
     jmp 08:long_mode_entry
 [BITS 64]
 long_mode_entry:
@@ -81,7 +81,7 @@ gdt_end_64:
 
 get_len	equ	gdt_end_64 - gdt_start_64			; length of gdt
 
-eGdtPtr:
+gdt_desc:
     dw get_len - 1					; limit of gdt
 	dq gdt_start_64
 
