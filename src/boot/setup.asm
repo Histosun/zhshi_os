@@ -1,6 +1,6 @@
 global _start
 extern setup_main
-extern setup_die
+extern die
 [SECTION .text]
 [BITS 16]
 
@@ -160,7 +160,7 @@ chk_cpu_long_mode:
 
 no_cpuid:
 no_long_mode:
-    call setup_die
+    call die
 
 gdt_start:
 gdt_null:
