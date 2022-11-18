@@ -79,7 +79,9 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 	objcopy -O binary $< $@
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
-${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o ${BUILD}/hal/hal_init.o ${BUILD}/hal/hal_console.o
+${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
+ 						${BUILD}/hal/hal_init.o ${BUILD}/hal/hal_console.o \
+ 						${BUILD}/lib/kprintf.o
 	ld -m elf_x86_64 $^ -o $@ -Ttext 0x200000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
@@ -93,14 +95,9 @@ ${BUILD}/hal/%.o: ./src/hal/%.c
 	$(shell mkdir -p ${BUILD}/hal)
 	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
 
-#kernel.bin
-
-#${BUILD}/main.o: ./src/main.c
-#	$(shell mkdir -p ${BUILD}/init)
-#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-
-#${BUILD}/setup.o: src/boot/setup.asm
-#	nasm -f elf32 -g $< -o $@
+${BUILD}/lib/%.o: ./src/lib/%.c
+	$(shell mkdir -p ${BUILD}/lib)
+	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
 
 clean:
 	$(shell rm -rf ${BUILD})

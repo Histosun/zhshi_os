@@ -12,5 +12,6 @@
 
 void clear_console();
 void init_console();
+void write_console(const char * buff);
 
 #endif

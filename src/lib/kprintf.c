@@ -1,8 +1,12 @@
 #include "../include/stdarg.h"
+#include "../hal/hal_console.h"
 
-static char buf[1024];
+static int vsprintf(char * buf, const char * fmt, char * args){
+    return 0;
+}
 
 int printk(const char * fmt, ...) {
+    char buf[1024];
     va_list args;
     int i;
 
@@ -12,8 +16,7 @@ int printk(const char * fmt, ...) {
 
     va_end(args);
 
-    console_write(buf, i);
+    write_console(fmt);
 
     return i;
 }
-

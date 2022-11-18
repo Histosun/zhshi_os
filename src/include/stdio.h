@@ -1,6 +1,6 @@
 #ifndef STDLIB_H
 #define STDLIB_H
 
-#define
+int printk(const char * fmt, ...);
 
 #endif
