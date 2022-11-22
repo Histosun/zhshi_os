@@ -16,7 +16,7 @@ void die(){
     while(1);
 }
 
-void krlmach_info_init(krlmach_info_t* pmach){
+void krl_mach_init(krlmach_info_t* pmach){
     char*ptr=pmach;
     for(int i=0; i<sizeof(krlmach_info_t);++i){
         *ptr = 0;
@@ -43,7 +43,17 @@ void* chk_memsize(e820_map_t *e8p, uint64_t e820_num, uint64_t sadr, uint64_t si
     return NULL;
 }
 
-void krlmach_info_mmap(krlmach_info_t* pmach){
+uint64_t get_memsize(e820_desc_t * e820_desc){
+    uint64_t size = 0;
+    for(int i=0; i < e820_desc->e820_num; ++i){
+        if(e820_desc->maps[i].type == RAM_USABLE) {
+            size += e820_desc->maps[i].size;
+        }
+    }
+    return size;
+}
+
+void krl_mach_mmap(krlmach_info_t* pmach){
     e820_desc_t* e820_desc = (e820_desc_t*)E820_DESC;
     if(e820_desc->e820_num==0){
         die();
@@ -54,11 +64,18 @@ void krlmach_info_mmap(krlmach_info_t* pmach){
     pmach->e820_adr = (uint64_t)e820_desc->maps;
     pmach->e820_nr = (uint64_t)e820_desc->e820_num;
     pmach->e820_sz = (uint64_t)(e820_desc->e820_num * sizeof(e820_map_t));
+    pmach->mach_memsize = get_memsize(e820_desc);
+}
+
+void krl_mach_stack(krlmach_info_t* pmach){
+    pmach->init_stack = IKSTACK_PHYADR;
+    pmach->init_stack = IKSTACK_SIZE;
 }
 
 //init machine info
 void init_mach_param() {
-    krlmach_info_t* pmach = MIPADR;
-    krlmach_info_init(pmach);
-    krlmach_info_mmap(pmach);
+    krlmach_info_t* krlmachInfo = MIPADR;
+    krl_mach_init(krlmachInfo);
+    krl_mach_mmap(krlmachInfo);
+    krl_mach_stack(krlmachInfo);
 }

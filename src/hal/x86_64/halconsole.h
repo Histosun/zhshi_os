@@ -1,6 +1,6 @@
 #ifndef HAL_CONSOLE_H
 #define HAL_CONSOLE_H
-#include "../include/type.h"
+#include "../../include/type.h"
 
 #define VGA_RAM_SADR 0xB8000                        // Graphics card memory starting address
 #define VGA_WIDTH 80                                // screen text columns

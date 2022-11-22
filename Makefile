@@ -1,5 +1,6 @@
 BUILD:=./build
 BIN:=./bin
+HAL:=hal/x86_64
 FILES = ${BIN}/boot.bin ${BIN}/setup.bin ${BIN}/kernel.bin
 INCLUDES = -I./oskernel
 #FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
@@ -55,7 +56,7 @@ ${BUILD}/boot/setup_c.o: ./src/boot/setup.c
 	$(shell mkdir -p ${BUILD}/boot)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
-${BUILD}/boot/ldr.o: ./src/boot/ldr.c
+${BUILD}/boot/ldr.o: src/ldr/ldr.c
 	$(shell mkdir -p ${BUILD}/boot)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
@@ -70,9 +71,9 @@ ${BUILD}/boot/ldr.o: ./src/boot/ldr.c
 #	$(shell mkdir -p ${BUILD}/idt)
 #	nasm -f elf32 -g $< -o $@
 
-${BUILD}/memory/mem.o: ./src/memory/mem.c
-	$(shell mkdir -p ${BUILD}/memory)
-	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
+#${BUILD}/memory/mem.o: ./src/memory/mem.c
+#	$(shell mkdir -p ${BUILD}/memory)
+#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 # kernel.bin
 ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
@@ -80,8 +81,8 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
- 						${BUILD}/hal/hal_init.o ${BUILD}/hal/hal_console.o \
- 						${BUILD}/lib/kprintf.o
+ 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o\
+ 						${BUILD}/lib/kprintf.o ${BUILD}/lib/memory.o
 	ld -m elf_x86_64 $^ -o $@ -Ttext 0x200000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
@@ -91,8 +92,12 @@ ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 ${BUILD}/kernel/kernel_c.o: ./src/kernel/kernel.c
 	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
 
-${BUILD}/hal/%.o: ./src/hal/%.c
-	$(shell mkdir -p ${BUILD}/hal)
+${BUILD}/${HAL}/%.o: ./src/${HAL}/%.c
+	$(shell mkdir -p ${BUILD}/${HAL})
+	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+
+${BUILD}/${HAL}/%.asm.o: ./src/${HAL}/%.asm
+	$(shell mkdir -p ${BUILD}/${HAL})
 	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
 
 ${BUILD}/lib/%.o: ./src/lib/%.c

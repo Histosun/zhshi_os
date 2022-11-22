@@ -1,6 +1,6 @@
 #ifndef LDRTYPE_H
 #define LDRTYPE_H
-#include "type.h"
+#include "../include/type.h"
 
 #define E820_DESC 0x5000
 #define E820_MAX 200
@@ -12,7 +12,7 @@ typedef struct krlmach_info
     uint64_t init_stack;    //kernel stack address
     uint64_t stack_sz;      //kernel stack size
     uint64_t cpu_mode;      //cpu mode
-    uint64_t mach_memsz;    //memory size of machine
+    uint64_t mach_memsize;    //memory size of machine
     uint64_t e820_adr;      //address of e820 array
     uint64_t e820_nr;       //number of e820 entry
     uint64_t e820_sz;       //size of e820 array

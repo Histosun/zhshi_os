@@ -35,8 +35,8 @@ _start:
     bts eax, 0                      ; CR0.PE =1
     bts eax, 31
 ;enable CACHE
-    btr eax,29		;CR0.NW=0
-    btr eax,30		;CR0.CD=0  CACHE
+    btr eax,29		                ;CR0.NW=0
+    btr eax,30		                ;CR0.CD=0  CACHE
     mov cr0, eax                    ; IA32_EFER.LMA = 1
 
     jmp 08:long_mode_entry

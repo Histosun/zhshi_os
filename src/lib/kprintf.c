@@ -1,5 +1,5 @@
 #include "../include/stdarg.h"
-#include "../hal/hal_console.h"
+#include "../hal/x86_64/halconsole.h"
 
 static int vsprintf(char * buf, const char * fmt, char * args){
     return 0;

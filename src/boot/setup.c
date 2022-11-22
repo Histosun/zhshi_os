@@ -1,7 +1,7 @@
 #include "../include/type.h"
 #include "../include/config.h"
-#include "../include/ldrtype.h"
-#include "ldr.h"
+#include "../ldr/ldrtype.h"
+#include "../ldr/ldr.h"
 
 void init_pages(){
     uint64_t *p = (uint64_t *)(KINITPAGE_PHYADR);
@@ -31,7 +31,7 @@ void init_pages(){
 }
 
 void setup_main(){
+    init_mach_param();
 
     init_pages();
-    init_mach_param();
 }

@@ -1,4 +1,4 @@
-#include "../include/mem.h"
+#include "../include/memory.h"
 
 void memset(void * addr, char val, uint32_t size){
     char * src = addr;
