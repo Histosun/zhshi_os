@@ -10,4 +10,8 @@ void kernel_main(){
 //        video_mem[0] = 'K';
 //        video_mem[1] = 15;
 //    }
+
+    __asm__("sti;");
+
+    while (1);
 }

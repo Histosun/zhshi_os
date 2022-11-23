@@ -16,7 +16,7 @@ CFLAGS+= -fno-stack-protector	# no stack protector
 CFLAGS:= $(strip ${CFLAGS})
 
 CFLAGS_64:= -m64 # 64 bit program
-CFLAGS_64+= -masm=intel
+#CFLAGS_64+= -masm=intel
 CFLAGS_64+= -fno-builtin	# no gcc built-in function
 CFLAGS_64+= -nostdinc		# no std head file
 CFLAGS_64+= -fno-pic		# position independent code
@@ -98,7 +98,7 @@ ${BUILD}/${HAL}/%.o: ./src/${HAL}/%.c
 
 ${BUILD}/${HAL}/%.asm.o: ./src/${HAL}/%.asm
 	$(shell mkdir -p ${BUILD}/${HAL})
-	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+	nasm -f elf64 -g $< -o $@
 
 ${BUILD}/lib/%.o: ./src/lib/%.c
 	$(shell mkdir -p ${BUILD}/lib)
