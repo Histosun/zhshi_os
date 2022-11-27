@@ -8,6 +8,7 @@ CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 KERNEL_START equ 0x200000
+KERNEL_ENTRY equ KERNEL_START + 0x1000
 E820_DESC equ 0x5000
 E820_ADR equ E820_DESC + 4
 
@@ -79,13 +80,14 @@ protected_entrance:
     call chk_cpuid
     call chk_cpu_long_mode
 
-    call setup_main
-
     mov ebx, 5
     mov ecx, 60
     mov edi, KERNEL_START
     call ata_lba_read
-    jmp CODE_SEG:KERNEL_START
+
+    call setup_main
+
+    jmp CODE_SEG:KERNEL_ENTRY
 
 ata_lba_read:
     mov eax, ebx

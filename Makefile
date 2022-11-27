@@ -1,7 +1,8 @@
 BUILD:=./build
+TOOL:=./tool
 BIN:=./bin
 HAL:=hal/x86_64
-FILES = ${BIN}/boot.bin ${BIN}/setup.bin ${BIN}/kernel.bin
+FILES = ${BIN}/boot.bin ${BIN}/setup.bin ${BIN}/kernel.pkg
 INCLUDES = -I./oskernel
 #FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -34,7 +35,7 @@ all: ${FILES}
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
 	dd if=${BIN}/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
 	dd if=${BIN}/setup.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=4 conv=notrunc
-	dd if=${BIN}/kernel.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=5 count=60 conv=notrunc
+	dd if=${BIN}/kernel.pkg of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=5 count=60 conv=notrunc
 
 #boot.bin
 ${BIN}/boot.bin: ./src/boot/boot.asm
@@ -75,6 +76,15 @@ ${BUILD}/boot/ldr.o: src/ldr/ldr.c
 #	$(shell mkdir -p ${BUILD}/memory)
 #	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
+# kernel.pkg
+${BIN}/kernel.pkg: ${BIN}/kernel.bin ${BUILD}/OStool
+	${BUILD}/OStool ${BIN}/kernel.bin $@
+	chmod 777 $@
+
+${BUILD}/OStool: ${TOOL}/main.c
+	gcc $< -o $@
+	chmod 777 $<
+
 # kernel.bin
 ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 	objcopy -O binary $< $@
@@ -83,7 +93,7 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
  						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o\
  						${BUILD}/lib/kprintf.o ${BUILD}/lib/memory.o
-	ld -m elf_x86_64 $^ -o $@ -Ttext 0x200000
+	ld -m elf_x86_64 $^ -o $@ -Ttext 0x201000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 	$(shell mkdir -p ${BUILD}/kernel)

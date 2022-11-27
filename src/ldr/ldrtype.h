@@ -2,6 +2,7 @@
 #define LDRTYPE_H
 #include "../include/type.h"
 
+#define KERNEL_START 0x200000
 #define E820_DESC 0x5000
 #define E820_MAX 200
 #define ZHOS_MAGIC (uint64_t)((((uint64_t)'Z')<<56)|(((uint64_t)'H')<<48)|(((uint64_t)'O')<<40)|(((uint64_t)'S')<<32)|(((uint64_t)'M')<<24)|(((uint64_t)'A')<<16)|(((uint64_t)'C')<<8)|((uint64_t)'H'))
@@ -17,6 +18,14 @@ typedef struct krlmach_info
     uint64_t e820_nr;       //number of e820 entry
     uint64_t e820_sz;       //size of e820 array
 }__attribute__((packed)) krlmach_info_t;
+
+typedef struct kernel_desc{
+    uint64_t kernel_magic;
+    uint64_t kernel_start;
+    uint64_t offset;
+    uint64_t kernel_size;
+    uint64_t next_pg;
+}__attribute__((packed)) kernel_desc_t;
 
 #define MIPADR ((krlmach_info_t*)(0x100000))
 
