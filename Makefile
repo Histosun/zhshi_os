@@ -30,7 +30,7 @@ DEBUG:= -g
 
 HD_IMG_NAME:= "hd.img"
 
-all: ${FILES}
+all: clean ${FILES}
 	$(shell rm -rf $(BUILD)/$(HD_IMG_NAME))
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
 	dd if=${BIN}/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
@@ -91,8 +91,8 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
- 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o\
- 						${BUILD}/lib/kprintf.o ${BUILD}/lib/memory.o
+ 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o ${BUILD}/${HAL}/halmm.o\
+ 						${BUILD}/lib/kprintf.o
 	ld -m elf_x86_64 $^ -o $@ -Ttext 0x201000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm

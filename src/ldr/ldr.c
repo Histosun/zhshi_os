@@ -16,12 +16,14 @@ void die(){
     while(1);
 }
 
-void krl_mach_init(krlmach_info_t* pmach){
-    char*ptr=pmach;
-    for(int i=0; i<sizeof(krlmach_info_t);++i){
-        *ptr = 0;
+void init_kernel_desc(kernel_desc_t * p_krl_desc){
+    if(kd->kernel_magic!=ZHOS_MAGIC){
+        die();
     }
-    pmach->zhos_magic = ZHOS_MAGIC;
+    p_krl_desc->kernel_start = KERNEL_START;
+    p_krl_desc->offset = KERNEL_ENTRY_OFF;
+    p_krl_desc->next_pg = P4K_ALIGN(KERNEL_START + kd->kernel_size + kd->offset);
+    p_krl_desc->next_descriptor_addr = DESC_START;
 }
 
 void* chk_memsize(e820_map_t *e8p, uint64_t e820_num, uint64_t sadr, uint64_t size){
@@ -53,7 +55,7 @@ uint64_t get_memsize(e820_desc_t * e820_desc){
     return size;
 }
 
-void krl_mach_mmap(krlmach_info_t* pmach){
+void init_krl_mmap(kernel_desc_t* p_krl_desc){
     e820_desc_t* e820_desc = (e820_desc_t*)E820_DESC;
     if(e820_desc->e820_num==0){
         die();
@@ -61,21 +63,21 @@ void krl_mach_mmap(krlmach_info_t* pmach){
     if(chk_memsize(e820_desc->maps, e820_desc->e820_num, 0x100000, 0x8000000) == NULL){
         die();
     }
-    pmach->e820_adr = (uint64_t)e820_desc->maps;
-    pmach->e820_nr = (uint64_t)e820_desc->e820_num;
-    pmach->e820_sz = (uint64_t)(e820_desc->e820_num * sizeof(e820_map_t));
-    pmach->mach_memsize = get_memsize(e820_desc);
+    p_krl_desc->mmap_adr = (uint64_t)(e820_desc->maps);
+    p_krl_desc->mmap_nr = (uint64_t)e820_desc->e820_num;
+    p_krl_desc->mmap_sz = (uint64_t)(e820_desc->e820_num * sizeof(e820_map_t));
+    p_krl_desc->mach_memsize = get_memsize(e820_desc);
 }
 
-void krl_mach_stack(krlmach_info_t* pmach){
-    pmach->init_stack = IKSTACK_PHYADR;
-    pmach->init_stack = IKSTACK_SIZE;
+void init_krl_stack(kernel_desc_t* p_krl_desc){
+    p_krl_desc->init_stack = IKSTACK_PHYADR;
+    p_krl_desc->init_stack = IKSTACK_SIZE;
 }
 
 //init machine info
 void init_mach_param() {
-    krlmach_info_t* krlmachInfo = MIPADR;
-    krl_mach_init(krlmachInfo);
-    krl_mach_mmap(krlmachInfo);
-    krl_mach_stack(krlmachInfo);
+    kd = (kernel_desc_t *)KERNEL_START;
+    init_kernel_desc(kd);
+    init_krl_mmap(kd);
+    init_krl_stack(kd);
 }

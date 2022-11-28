@@ -3,13 +3,6 @@
 #include "../ldr/ldrtype.h"
 #include "../ldr/ldr.h"
 
-kernel_desc_t* kd;
-void init_kernel(){
-    kd = KERNEL_START;
-    kd->kernel_start = KERNEL_START;
-    kd->next_pg = P4K_ALIGN(KERNEL_START + kd->kernel_size + kd->offset);
-}
-
 void init_pages(){
     uint64_t *p = (uint64_t *)(KINITPAGE_PHYADR);
     uint64_t *pdpte = (uint64_t *)(KINITPAGE_PHYADR + 0x1000);
@@ -38,7 +31,6 @@ void init_pages(){
 }
 
 int setup_main(){
-    init_kernel();
     init_mach_param();
     init_pages();
 }

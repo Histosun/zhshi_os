@@ -1,6 +1,6 @@
 #include "halidt.h"
 #include "halglobal.h"
-#include "../../include/memory.h"
+#include "../../lib/memory.h"
 #include "../../include/stdio.h"
 #include "halio.h"
 
@@ -10,8 +10,7 @@ int_desc_t idt[IDT_MAX];
 
 extern void load_idt(idtr_desc_t *idtptr);
 
-void set_idt(uint32_t i, uint8_t type, int_handler handler)
-{
+void set_idt(uint32_t i, uint8_t type, int_handler handler) {
     int_desc_t * interrupt = &idt[i];
     uint64_t base = (uint64_t)handler;
     interrupt->offset_0 = base & 0xffff;
@@ -24,8 +23,7 @@ void set_idt(uint32_t i, uint8_t type, int_handler handler)
     return;
 }
 
-void load_idt(idtr_desc_t *idtptr)
-{
+void load_idt(idtr_desc_t *idtptr) {
     __asm__ __volatile__(
             "lidt (%0)"
             :
@@ -39,7 +37,7 @@ void idt0(){
     while(1);
 }
 
-//for now hard coded. Will use macro to replace it in future
+//For now hard coded. Will use macro to replace it in future
 void init_8259a(){
     out_byte(0x20, 0x11);
     out_byte(0xA0, 0x11);
