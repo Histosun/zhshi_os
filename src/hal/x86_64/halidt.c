@@ -1,6 +1,6 @@
 #include "halidt.h"
 #include "halglobal.h"
-#include "../../lib/memory.h"
+#include "../../include/memory.h"
 #include "../../include/stdio.h"
 #include "halio.h"
 

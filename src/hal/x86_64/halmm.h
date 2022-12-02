@@ -2,7 +2,7 @@
 #define HAL_MM_H
 
 #include "../../include/type.h"
-#include "../../lib/spinlock.h"
+#include "../../include/btypeinc/spinlock.h"
 #include "haltype.h"
 
 #define RAM_USABLE 1
@@ -22,8 +22,7 @@
 #define PMR_F_ARM_64 (1<<3)
 #define PMR_F_HAL_MASK 0xff
 
-typedef struct phymem_desc
-{
+typedef struct phymem_desc {
     spinlock_t pm_lock;     //spinlock that protect the struct
     uint32_t pm_type;       //memory address space type
     uint32_t pm_stype;
@@ -37,8 +36,8 @@ typedef struct phymem_desc
     uint64_t pm_rsvmend;    //End address of reserved memory space
     void* pm_prip;
     void* pm_extp;
-}phymem_desc_t;
+} phymem_desc_t;
 
-void init_phymm(kernel_desc_t * p_kernel_desc);
+void init_halmm(kernel_desc_t * p_kernel_desc);
 
 #endif

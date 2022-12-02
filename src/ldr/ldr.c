@@ -23,7 +23,6 @@ void init_kernel_desc(kernel_desc_t * p_krl_desc){
     p_krl_desc->kernel_start = KERNEL_START;
     p_krl_desc->offset = KERNEL_ENTRY_OFF;
     p_krl_desc->next_pg = P4K_ALIGN(KERNEL_START + kd->kernel_size + kd->offset);
-    p_krl_desc->next_descriptor_addr = DESC_START;
 }
 
 void* chk_memsize(e820_map_t *e8p, uint64_t e820_num, uint64_t sadr, uint64_t size){

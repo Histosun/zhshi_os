@@ -1,7 +1,7 @@
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 
-#include "../include/type.h"
+#include "../type.h"
 
 typedef struct
 {

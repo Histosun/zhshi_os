@@ -91,7 +91,7 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
- 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o ${BUILD}/${HAL}/halmm.o\
+ 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
  						${BUILD}/lib/kprintf.o
 	ld -m elf_x86_64 $^ -o $@ -Ttext 0x201000
 

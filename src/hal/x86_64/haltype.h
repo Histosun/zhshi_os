@@ -2,7 +2,7 @@
 #define HAL_TYPE_H
 
 #include "../../include/type.h"
-#include "../../lib/spinlock.h"
+#include "../../include/btypeinc/spinlock.h"
 #include "../../ldr/ldrtype.h"
 
 kernel_desc_t * pkernel_des;

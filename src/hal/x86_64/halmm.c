@@ -1,7 +1,8 @@
 #include "halmm.h"
+#include "halmm_t.h"
 #include "halinit.h"
 #include "../../include/stdio.h"
-#include "../../lib/memory.h"
+#include "../../include/memory.h"
 
 
 void init_one_phymm(phymem_desc_t * initp){
@@ -82,7 +83,7 @@ void phymm_swap(phymem_desc_t *s, phymem_desc_t *d)
     return;
 }
 
-void sort_phymm(phymem_desc_t * phymm_arr, uint64_t num){
+void sort_phymm(phymem_desc_t * phymm_arr, uint64_t num) {
     uint64_t i, j, k = num - 1;
     for (j = 0; j < k; j++) {
         for (i = 0; i < k - j; i++) {
@@ -94,17 +95,16 @@ void sort_phymm(phymem_desc_t * phymm_arr, uint64_t num){
     return;
 }
 
-void init_phymm(kernel_desc_t * p_kernel_desc){
-    uint64_t temp = p_kernel_desc->next_descriptor_addr;
-    p_kernel_desc->next_descriptor_addr = ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymem_desc_t), 8);
-    if(p_kernel_desc->next_descriptor_addr >= p_kernel_desc->kernel_start){
-        printk("Not enough memory for descriptors!");
-        while(1);
+void init_phymm(kernel_desc_t * p_kernel_desc) {
+    if(p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_nr == 0){
+        printk("e820 array error!");
+        while (1);
     }
+    uint64_t temp = p_kernel_desc->next_pg;
+    p_kernel_desc->next_pg = P4K_ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymem_desc_t));
     phymem_desc_t * phymm = (phymem_desc_t *)temp;
     e820_map_t * e8p = (e820_map_t *)p_kernel_desc->mmap_adr;
     for(int i=0; i < p_kernel_desc->mmap_nr; ++i){
-        printk("%d", phymm[i].pm_saddr);
         if(set_phymem_desc(&e8p[i], &phymm[i]) == FALSE){
             printk("Error occurs when setting memory address");
             while(1);
@@ -113,4 +113,81 @@ void init_phymm(kernel_desc_t * p_kernel_desc){
     p_kernel_desc->mmap_adr = (uint64_t)phymm;
     p_kernel_desc->mmap_sz = p_kernel_desc->mmap_nr * sizeof(phymem_desc_t);
     sort_phymm(phymm, p_kernel_desc->mmap_nr);
+}
+
+bool_t ret_mpdesc_adrandsz(kernel_desc_t * p_kernel_desc, mpgdesc_t** p_mpdesc_arr, uint64_t * p_mpdescnr) {
+    if(p_kernel_desc == NULL || p_mpdesc_arr == NULL || p_mpdescnr == NULL) {
+        return FALSE;
+    }
+    if(p_kernel_desc->mmap_nr < 1 || p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_sz != p_kernel_desc->mmap_nr * sizeof(phymem_desc_t)) {
+        return FALSE;
+    }
+    phymem_desc_t * phymem_arr = p_kernel_desc->mmap_adr;
+    uint64_t umemsz = 0, mpdescnr = 0;
+    for(int i = 0; i < p_kernel_desc->mmap_nr; ++i){
+        if(phymem_arr[i].pm_type == PMR_T_OSAPUSERRAM){
+            umemsz += phymem_arr[i].pm_lsize;
+            mpdescnr += (phymem_arr[i].pm_lsize >> 12);
+        }
+    }
+    if((umemsz >> 12) < 1 || mpdescnr < 1){
+        return FALSE;
+    }
+    *p_mpdesc_arr = p_kernel_desc->next_pg;
+    *p_mpdescnr = mpdescnr;
+    return TRUE;
+}
+
+void set_mpdesc(mpgdesc_t * mpdesc, uint64_t phy_adr) {
+    mpdesc_t_init(mpdesc);
+    phyadrflgs_t *tmp = (phyadrflgs_t *)(&phy_adr);
+    mpdesc->mp_phyadr.paf_phyadr = tmp->paf_phyadr;
+}
+
+uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr) {
+    phymem_desc_t * pm_arr = p_kernel_desc->mmap_adr;
+    uint64_t mpnr = 0;
+    for(int i = 0; i < p_kernel_desc->mmap_nr; ++i){
+        if(pm_arr[i].pm_type == PMR_T_OSAPUSERRAM) {
+            for(uint64_t mp_adr = pm_arr[i].pm_saddr; mp_adr < pm_arr[i].pm_end; mp_adr += 4096 ){
+                if(mp_adr + 4096 - 1 <= pm_arr[i].pm_end) {
+                    set_mpdesc(&mpdesc_arr[mpnr], mp_adr);
+                    ++mpnr;
+                }
+            }
+        }
+        if( i == 2){
+            while(1);
+        }
+    }
+    return mpnr;
+}
+
+void init_mpdesc(kernel_desc_t * p_kernel_desc){
+    uint64_t coremdnr = 0, mpdescnr = 0;
+    mpgdesc_t * mpdesc_arr = NULL;
+
+    if(!ret_mpdesc_adrandsz(p_kernel_desc, &mpdesc_arr, &mpdescnr)) {
+        printk("init_memmanager ret_mpdesc_adrandsz error!");
+        while(1);
+    }
+    coremdnr = init_mpdesc_core(p_kernel_desc, mpdesc_arr);
+    if(coremdnr != mpdescnr){
+        printk("init_memmanager init_mpdesc_core error!");
+        while(1);
+    }
+
+    p_kernel_desc->mp_desc_arr = mpdesc_arr;
+    p_kernel_desc->mp_desc_nr = coremdnr;
+    p_kernel_desc->mp_desc_sz = sizeof(mpgdesc_t) * coremdnr;
+    p_kernel_desc->next_pg = P4K_ALIGN(p_kernel_desc->next_pg + p_kernel_desc->mp_desc_sz);
+}
+
+void init_memmanager(kernel_desc_t * p_kernel_desc) {
+    init_mpdesc(p_kernel_desc);
+}
+
+void init_halmm(kernel_desc_t * p_kernel_desc) {
+    init_phymm(p_kernel_desc);
+    init_memmanager(p_kernel_desc);
 }

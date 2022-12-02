@@ -22,9 +22,10 @@ typedef struct kernel_desc{
     uint64_t mmap_adr;      //address of e820 array
     uint64_t mmap_nr;       //number of e820 entry
     uint64_t mmap_sz;       //size of e820 array
+    uint64_t mp_desc_arr;   //start address of memory page descriptor array
+    uint64_t mp_desc_nr;    //number of memory page descriptors
+    uint64_t mp_desc_sz;    //size of memory page descriptor array
     uint64_t next_pg;       //next paging address
-    uint64_t mach_descriptors_addr;
-    uint64_t next_descriptor_addr;
 }__attribute__((packed)) kernel_desc_t;
 
 int main (int argc,char *argv[]) {
