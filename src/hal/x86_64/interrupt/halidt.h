@@ -1,6 +1,6 @@
 #ifndef HAL_IDT_H
 #define HAL_IDT_H
-#include "haltype.h"
+#include "../haltype.h"
 
 #define	INT_DESC_DIVIDE 0x0
 #define	INT_DESC_DEBUG 0x1

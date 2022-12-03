@@ -57,24 +57,9 @@ ${BUILD}/boot/setup_c.o: ./src/boot/setup.c
 	$(shell mkdir -p ${BUILD}/boot)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
-${BUILD}/boot/ldr.o: src/ldr/ldr.c
+${BUILD}/boot/ldr.o: ./src/ldr/ldr.c
 	$(shell mkdir -p ${BUILD}/boot)
 	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-
-#${BUILD}/lib/string.o: ./src/lib/string.c
-#	$(shell mkdir -p ${BUILD}/lib)
-#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-#
-#${BUILD}/idt/idt_c.o: ./src/idt/idt.c
-#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
-#
-#${BUILD}/idt/idt_asm.o: ./src/idt/idt.asm
-#	$(shell mkdir -p ${BUILD}/idt)
-#	nasm -f elf32 -g $< -o $@
-
-#${BUILD}/memory/mem.o: ./src/memory/mem.c
-#	$(shell mkdir -p ${BUILD}/memory)
-#	gcc ${CFLAGS} ${DEBUG} -c $< -o $@
 
 # kernel.pkg
 ${BIN}/kernel.pkg: ${BIN}/kernel.bin ${BUILD}/OStool
@@ -91,9 +76,10 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 #	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
 
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
- 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halidt.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
+ 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
+ 						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
  						${BUILD}/lib/kprintf.o
-	ld -m elf_x86_64 $^ -o $@ -Ttext 0x201000
+	ld -m elf_x86_64 $^ -o $@ -Ttext 0x2001000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 	$(shell mkdir -p ${BUILD}/kernel)
@@ -108,7 +94,15 @@ ${BUILD}/${HAL}/%.o: ./src/${HAL}/%.c
 
 ${BUILD}/${HAL}/%.asm.o: ./src/${HAL}/%.asm
 	$(shell mkdir -p ${BUILD}/${HAL})
-	nasm -f elf64 -g $< -o $@
+	nasm -f elf64 $< -o $@
+
+${BUILD}/${HAL}/interrupt/%.o: ./src/${HAL}/interrupt/%.c
+	$(shell mkdir -p ${BUILD}/${HAL}/interrupt)
+	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+
+${BUILD}/${HAL}/interrupt/%.asm.o: ./src/${HAL}/interrupt/%.asm
+	$(shell mkdir -p ${BUILD}/${HAL})
+	nasm -f elf64 -I ./src/${HAL}/interrupt $< -o $@
 
 ${BUILD}/lib/%.o: ./src/lib/%.c
 	$(shell mkdir -p ${BUILD}/lib)

@@ -7,7 +7,7 @@ extern die
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-KERNEL_START equ 0x200000
+KERNEL_START equ 0x2000000
 KERNEL_ENTRY equ KERNEL_START + 0x1000
 E820_DESC equ 0x5000
 E820_ADR equ E820_DESC + 4

@@ -40,6 +40,8 @@ _start:
     mov cr0, eax                    ; IA32_EFER.LMA = 1
 
     jmp 08:long_mode_entry
+
+
 [BITS 64]
 long_mode_entry:
 	mov ax,0x10

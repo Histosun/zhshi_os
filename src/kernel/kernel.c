@@ -4,7 +4,7 @@
 void kernel_main(){
     init_hal();
 
-//    __asm__("sti;");
+    __asm__("sti;");
     printk("Hello kernel!");
-    while (1);
+//    while (1);
 }

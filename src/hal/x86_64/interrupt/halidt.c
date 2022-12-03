@@ -1,14 +1,14 @@
 #include "halidt.h"
-#include "halglobal.h"
-#include "../../include/memory.h"
-#include "../../include/stdio.h"
-#include "halio.h"
+#include "../halglobal.h"
+#include "../../../include/stdio.h"
+#include "../halio.h"
+
+extern void exc_divide_error();
+extern void exc_default();
 
 idtr_desc_t idtr;
 
 int_desc_t idt[IDT_MAX];
-
-extern void load_idt(idtr_desc_t *idtptr);
 
 void set_idt(uint32_t i, uint8_t type, int_handler handler) {
     int_desc_t * interrupt = &idt[i];
@@ -32,11 +32,6 @@ void load_idt(idtr_desc_t *idtptr) {
     return;
 }
 
-void idt0(){
-    printk("Divide by zero");
-    while(1);
-}
-
 //For now hard coded. Will use macro to replace it in future
 void init_8259a(){
     out_byte(0x20, 0x11);
@@ -55,8 +50,9 @@ void init_8259a(){
 void init_idt(){
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (uint64_t)idt;
-    set_idt(INT_DESC_DIVIDE, INT_DPL_KERNEL|INT_GATE, idt0);
+    set_idt(INT_DESC_DIVIDE, INT_DPL_KERNEL|INT_GATE, exc_divide_error);
+    set_idt(1, INT_DPL_KERNEL|INT_GATE, exc_divide_error);
     init_8259a();
-    set_idt(0x21, INT_DPL_KERNEL|INT_GATE, idt0);
+    set_idt(0x21, INT_DPL_KERNEL|INT_GATE, exc_default);
     load_idt(&idtr);
 }

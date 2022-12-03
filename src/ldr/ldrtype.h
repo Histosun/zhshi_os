@@ -2,7 +2,7 @@
 #define LDRTYPE_H
 #include "../include/type.h"
 
-#define KERNEL_START 0x200000
+#define KERNEL_START 0x2000000
 #define KERNEL_ENTRY_OFF 0x1000
 #define DESC_START 0x100000
 #define E820_DESC 0x5000
