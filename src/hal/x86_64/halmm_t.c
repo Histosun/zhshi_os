@@ -22,3 +22,26 @@ void mpdesc_t_init(mpgdesc_t * mpgdesc){
 
     mpgdesc->mp_odlink = NULL;
 }
+
+void memarea_t_init(memarea_t * p_memarea) {
+    list_t_init(& p_memarea->ma_list);
+    p_memarea->ma_lock.lock = 0;
+    p_memarea->ma_stus = 0;
+    p_memarea->ma_flgs = 0;
+    p_memarea->ma_type = MA_TYPE_INIT;
+    p_memarea->ma_maxpages = 0;
+    p_memarea->ma_allocpages = 0;
+    p_memarea->ma_freepages = 0;
+    p_memarea->ma_rsvpages = 0;
+    p_memarea->ma_horizline = 0;
+    p_memarea->ma_logicstart = 0;
+    p_memarea->ma_logicend = 0;
+    p_memarea->ma_logicsz = 0;
+    p_memarea->ma_effectstart = 0;
+    p_memarea->ma_effectend = 0;
+    p_memarea->ma_effectsz = 0;
+    p_memarea->ma_privp = NULL;
+    list_t_init(& p_memarea->ma_allmpdesclst);
+    p_memarea->ma_allmpdscnr = 0;
+
+}

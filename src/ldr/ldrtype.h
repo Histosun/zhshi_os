@@ -3,7 +3,7 @@
 #include "../include/type.h"
 
 #define KERNEL_START 0x2000000
-#define KERNEL_ENTRY_OFF 0x1000
+#define KERNEL_OFF 0x1000
 #define DESC_START 0x100000
 #define E820_DESC 0x5000
 #define E820_MAX 200
@@ -12,7 +12,6 @@
 typedef struct kernel_desc{
     uint64_t kernel_magic;  //magic of os
     uint64_t kernel_start;  //starting address of kernel
-    uint64_t offset;        //offset for kernel entry
     uint64_t kernel_size;   //kernel size
     uint64_t init_stack;    //kernel stack address
     uint64_t stack_sz;      //kernel stack size

@@ -8,7 +8,7 @@ CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 KERNEL_START equ 0x2000000
-KERNEL_ENTRY equ KERNEL_START + 0x1000
+KERNEL_OFF equ + 0x1000
 E820_DESC equ 0x5000
 E820_ADR equ E820_DESC + 4
 
@@ -82,12 +82,12 @@ protected_entrance:
 
     mov ebx, 5
     mov ecx, 60
-    mov edi, KERNEL_START
+    mov edi, KERNEL_START - KERNEL_OFF
     call ata_lba_read
 
     call setup_main
 
-    jmp CODE_SEG:KERNEL_ENTRY
+    jmp CODE_SEG:KERNEL_START
 
 ata_lba_read:
     mov eax, ebx

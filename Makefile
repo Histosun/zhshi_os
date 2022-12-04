@@ -79,7 +79,7 @@ ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c
  						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
  						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
  						${BUILD}/lib/kprintf.o
-	ld -m elf_x86_64 $^ -o $@ -Ttext 0x2001000
+	ld -m elf_x86_64 $^ -o $@ -Ttext 0x2000000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 	$(shell mkdir -p ${BUILD}/kernel)

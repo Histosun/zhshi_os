@@ -21,8 +21,7 @@ void init_kernel_desc(kernel_desc_t * p_krl_desc){
         die();
     }
     p_krl_desc->kernel_start = KERNEL_START;
-    p_krl_desc->offset = KERNEL_ENTRY_OFF;
-    p_krl_desc->next_pg = P4K_ALIGN(KERNEL_START + kd->kernel_size + kd->offset);
+    p_krl_desc->next_pg = P4K_ALIGN(KERNEL_START + kd->kernel_size);
 }
 
 void* chk_memsize(e820_map_t *e8p, uint64_t e820_num, uint64_t sadr, uint64_t size){
@@ -75,7 +74,7 @@ void init_krl_stack(kernel_desc_t* p_krl_desc){
 
 //init machine info
 void init_mach_param() {
-    kd = (kernel_desc_t *)KERNEL_START;
+    kd = (kernel_desc_t *)(KERNEL_START - KERNEL_OFF);
     init_kernel_desc(kd);
     init_krl_mmap(kd);
     init_krl_stack(kd);

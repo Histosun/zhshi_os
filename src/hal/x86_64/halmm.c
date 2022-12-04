@@ -1,6 +1,7 @@
 #include "halmm.h"
 #include "halmm_t.h"
 #include "halinit.h"
+#include "halconsole.h"
 #include "../../include/stdio.h"
 #include "../../include/memory.h"
 
@@ -101,7 +102,6 @@ void init_phymm(kernel_desc_t * p_kernel_desc) {
         while (1);
     }
     uint64_t temp = p_kernel_desc->next_pg;
-    p_kernel_desc->next_pg = P4K_ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymem_desc_t));
     phymem_desc_t * phymm = (phymem_desc_t *)temp;
     e820_map_t * e8p = (e820_map_t *)p_kernel_desc->mmap_adr;
     for(int i=0; i < p_kernel_desc->mmap_nr; ++i){
@@ -113,6 +113,7 @@ void init_phymm(kernel_desc_t * p_kernel_desc) {
     p_kernel_desc->mmap_adr = (uint64_t)phymm;
     p_kernel_desc->mmap_sz = p_kernel_desc->mmap_nr * sizeof(phymem_desc_t);
     sort_phymm(phymm, p_kernel_desc->mmap_nr);
+    p_kernel_desc->next_pg = P4K_ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymem_desc_t));
 }
 
 bool_t ret_mpdesc_adrandsz(kernel_desc_t * p_kernel_desc, mpgdesc_t** p_mpdesc_arr, uint64_t * p_mpdescnr) {
@@ -156,9 +157,6 @@ uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr)
                 }
             }
         }
-        if( i == 2){
-            while(1);
-        }
     }
     return mpnr;
 }
@@ -176,15 +174,19 @@ void init_mpdesc(kernel_desc_t * p_kernel_desc){
         printk("init_memmanager init_mpdesc_core error!");
         while(1);
     }
-
     p_kernel_desc->mp_desc_arr = mpdesc_arr;
     p_kernel_desc->mp_desc_nr = coremdnr;
     p_kernel_desc->mp_desc_sz = sizeof(mpgdesc_t) * coremdnr;
     p_kernel_desc->next_pg = P4K_ALIGN(p_kernel_desc->next_pg + p_kernel_desc->mp_desc_sz);
 }
 
+void init_memarea(kernel_desc_t * p_kernel_desc){
+
+}
+
 void init_memmanager(kernel_desc_t * p_kernel_desc) {
     init_mpdesc(p_kernel_desc);
+    init_memarea(p_kernel_desc);
 }
 
 void init_halmm(kernel_desc_t * p_kernel_desc) {

@@ -3,10 +3,9 @@
 #include "halconsole.h"
 #include "interrupt/halidt.h"
 
-void init_hal(){
-    pkernel_des = (kernel_desc_t*)KERNEL_START;
+void init_hal(kernel_desc_t * p_kernel_desc){
     init_idt();
-//    init_halmm(pkernel_des);
+    init_halmm(p_kernel_desc);
     init_console();
     return;
 }

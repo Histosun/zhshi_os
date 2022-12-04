@@ -4,7 +4,7 @@
 #include "haltype.h"
 #include "halglobal.h"
 
-void init_hal();
+void init_hal(kernel_desc_t * p_kernel_desc);
 void init_mach();
 
 #endif

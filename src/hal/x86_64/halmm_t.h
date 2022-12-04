@@ -49,6 +49,7 @@ typedef struct mpgflgs{
 #define  PAF_NO_BUSY (0)
 #define  PAF_RSV_VAL (0)
 #define  PAF_INIT_PADRS (0)
+
 typedef struct phyadrflgs{
     uint64_t paf_alloc:1;
     uint64_t paf_shared:1;
@@ -87,10 +88,22 @@ typedef struct mpafhlst {
     list_t af_alclst;
 } mpafhlst_t;
 
+#define MDIVMER_ARR_LMAX 52
+typedef struct memdivmer
+{
+    spinlock_t dm_lock;
+    uint32_t dm_stus;
+    uint_t dm_divnr;
+    uint_t dm_mernr;
+    mpafhlst_t dm_mdmlielst[MDIVMER_ARR_LMAX];
+    mpafhlst_t dm_onemsalst;
+}memdivmer_t;
 
+#define MA_TYPE_INIT 0
 #define MA_TYPE_HWAD 1
 #define MA_TYPE_KRNL 2
 #define MA_TYPE_PROC 3
+#define MEMAREA_MAX 3
 #define MA_HWAD_LSTART 0
 #define MA_HWAD_LSZ 0x2000000
 #define MA_HWAD_LEND (MA_HWAD_LSTART+MA_HWAD_LSZ-1)
@@ -101,8 +114,12 @@ typedef struct mpafhlst {
 #define MA_PROC_LSZ (0xffffffff-0x40000000)
 #define MA_PROC_LEND (MA_PROC_LSTART+MA_PROC_LSZ)
 
+struct mafuncobjs;
+
+typedef mafuncobjs mafuncobjs_t
+
 typedef struct memarea{
-    list_t ma_lsit;
+    list_t ma_list;
     spinlock_t ma_lock;
     uint_t ma_stus;
     uint_t ma_flgs;
@@ -117,19 +134,24 @@ typedef struct memarea{
     adr_t ma_logicstart;
     adr_t ma_logicend;
     uint_t ma_logicsz;
+    adr_t ma_effectstart;
+    adr_t ma_effectend;
+    adr_t ma_effectsz;
+    list_t ma_allmpdesclst;
+    uint_t ma_allmpdscnr;
+    mafuncobjs_t ma_funcobj;
+    memdivmer_t ma_mdmdata;
+    void * ma_privp;
 } memarea_t;
 
+struct mafuncobjs {
+    mmstus_t (*mafo_init)(struct s_MEMAREA* memarea,void* valp,uint_t val);
+    mmstus_t (*mafo_exit)(struct s_MEMAREA* memarea);
+    mmstus_t (*mafo_aloc)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
+    mmstus_t (*mafo_free)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
+    mmstus_t (*mafo_recy)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
 
-#define MDIVMER_ARR_LMAX 52
-typedef struct memdivmer
-{
-    spinlock_t dm_lock;
-    uint32_t dm_stus;
-    uint_t dm_divnr;
-    uint_t dm_mernr;
-    mpafhlst_t dm_mdmlielst[MDIVMER_ARR_LMAX];
-    mpafhlst_t dm_onemsalst;
-}memdivmer_t;
+};
 
 
 #endif

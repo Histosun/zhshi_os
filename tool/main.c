@@ -14,7 +14,6 @@ typedef u_int64_t uint64_t;
 typedef struct kernel_desc{
     uint64_t kernel_magic;  //magic of os
     uint64_t kernel_start;  //starting address of kernel
-    uint64_t offset;        //offset for kernel entry
     uint64_t kernel_size;   //kernel size
     uint64_t init_stack;    //kernel stack address
     uint64_t stack_sz;      //kernel stack size

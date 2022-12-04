@@ -5,8 +5,6 @@
 #include "../../include/btypeinc/spinlock.h"
 #include "../../ldr/ldrtype.h"
 
-kernel_desc_t * pkernel_des;
-
 #define IDT_MAX 256
 
 typedef struct int_desc {
