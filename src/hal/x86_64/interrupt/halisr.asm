@@ -15,3 +15,4 @@ exc_divide_error:
 ALIGN 16
 exc_default:
 	ISR_DEFAULT 13
+ALIGN 16

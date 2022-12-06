@@ -70,7 +70,7 @@ long_mode_entry:
     jmp $
 
 
-[SECTION .start.data]
+[SECTION .data]
 [BITS 32]
 gdt_start_64:
 null_x64_dsc:  dq 0
@@ -87,7 +87,7 @@ gdt_desc:
     dw get_len - 1					; limit of gdt
 	dq gdt_start_64
 
-[section .start.data.pml4]
+[section .data]
 
 stack:
 	times 1024 dq 0

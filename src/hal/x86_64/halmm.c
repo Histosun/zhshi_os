@@ -5,6 +5,7 @@
 #include "../../include/stdio.h"
 #include "../../include/memory.h"
 
+memarea_t memarea_arr[MEMAREA_MAX];
 
 void init_one_phymm(phymem_desc_t * initp){
     if (NULL == initp)
@@ -148,9 +149,9 @@ void set_mpdesc(mpgdesc_t * mpdesc, uint64_t phy_adr) {
 uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr) {
     phymem_desc_t * pm_arr = p_kernel_desc->mmap_adr;
     uint64_t mpnr = 0;
-    for(int i = 0; i < p_kernel_desc->mmap_nr; ++i){
+    for(int i = 0; i < p_kernel_desc->mmap_nr; ++i) {
         if(pm_arr[i].pm_type == PMR_T_OSAPUSERRAM) {
-            for(uint64_t mp_adr = pm_arr[i].pm_saddr; mp_adr < pm_arr[i].pm_end; mp_adr += 4096 ){
+            for(uint64_t mp_adr = pm_arr[i].pm_saddr; mp_adr < pm_arr[i].pm_end; mp_adr += 4096 ) {
                 if(mp_adr + 4096 - 1 <= pm_arr[i].pm_end) {
                     set_mpdesc(&mpdesc_arr[mpnr], mp_adr);
                     ++mpnr;
@@ -181,7 +182,27 @@ void init_mpdesc(kernel_desc_t * p_kernel_desc){
 }
 
 void init_memarea(kernel_desc_t * p_kernel_desc){
+    for(int i = 0; i < MEMAREA_MAX; ++i) {
+        memarea_t_init(&memarea_arr[i]);
+    }
+    memarea_arr[0].ma_type = MA_TYPE_HWAD;
+    memarea_arr[0].ma_logicstart = MA_HWAD_LSTART;
+    memarea_arr[0].ma_logicend = MA_HWAD_LEND;
+    memarea_arr[0].ma_logicsz = MA_HWAD_LSZ;
 
+    memarea_arr[1].ma_type = MA_TYPE_KRNL;
+    memarea_arr[1].ma_logicstart = MA_KRNL_LSTART;
+    memarea_arr[1].ma_logicend = MA_KRNL_LEND;
+    memarea_arr[1].ma_logicsz = MA_KRNL_LSZ;
+
+    memarea_arr[2].ma_type = MA_TYPE_PROC;
+    memarea_arr[2].ma_logicstart = MA_PROC_LSTART;
+    memarea_arr[2].ma_logicend = MA_PROC_LEND;
+    memarea_arr[2].ma_logicsz = MA_PROC_LSZ;
+
+    p_kernel_desc->ma_phyadr = memarea_arr;
+    p_kernel_desc->ma_nr = MEMAREA_MAX;
+    p_kernel_desc->ma_sz = sizeof (memarea_arr);
 }
 
 void init_memmanager(kernel_desc_t * p_kernel_desc) {

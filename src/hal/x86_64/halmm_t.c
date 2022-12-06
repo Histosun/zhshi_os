@@ -23,6 +23,30 @@ void mpdesc_t_init(mpgdesc_t * mpgdesc){
     mpgdesc->mp_odlink = NULL;
 }
 
+void mpafhlst_t_init(mpafhlst_t * p_mpafhlst, uint32_t stus, uint_t oder){
+    p_mpafhlst->af_lock.lock = 0;
+    p_mpafhlst->af_stus = stus;
+    p_mpafhlst->af_oder = oder;
+    p_mpafhlst->af_oderpnr = 1UL << oder;
+    p_mpafhlst->af_fobjnr = 0;
+    p_mpafhlst->al_aobjnr = 0;
+    p_mpafhlst->af_freindx = 0;
+    p_mpafhlst->af_alcindx = 0;
+    list_t_init(&p_mpafhlst->af_alclst);
+    list_t_init(&p_mpafhlst->af_frelst);
+}
+
+void memdivmer_t_init (memdivmer_t * p_memdivmer) {
+    p_memdivmer->dm_lock.lock = 0;
+    p_memdivmer->dm_stus = 0;
+    p_memdivmer->dm_divnr = 0;
+    p_memdivmer->dm_mernr = 0;
+    for(int i =0 ;i< MDIVMER_ARR_LMAX; ++i) {
+        mpafhlst_t_init(&p_memdivmer->dm_mdmlielst[i], BAFH_STUS_DIVM, i);
+    }
+    mpafhlst_t_init(&p_memdivmer->dm_onemsalst, BAFH_STUS_ONEM, 0);
+}
+
 void memarea_t_init(memarea_t * p_memarea) {
     list_t_init(& p_memarea->ma_list);
     p_memarea->ma_lock.lock = 0;
@@ -37,11 +61,6 @@ void memarea_t_init(memarea_t * p_memarea) {
     p_memarea->ma_logicstart = 0;
     p_memarea->ma_logicend = 0;
     p_memarea->ma_logicsz = 0;
-    p_memarea->ma_effectstart = 0;
-    p_memarea->ma_effectend = 0;
-    p_memarea->ma_effectsz = 0;
+    memdivmer_t_init(&p_memarea->ma_mdmdata);
     p_memarea->ma_privp = NULL;
-    list_t_init(& p_memarea->ma_allmpdesclst);
-    p_memarea->ma_allmpdscnr = 0;
-
 }

@@ -8,22 +8,23 @@ INCLUDES = -I./oskernel
 
 CFLAGS:= -m32 # 32 bit program
 CFLAGS+= -masm=intel
-CFLAGS+= -fno-builtin	# no gcc built-in function
-CFLAGS+= -nostdinc		# no std head file
-CFLAGS+= -fno-pic		# position independent code
-CFLAGS+= -fno-pie		# position independent executable
-CFLAGS+= -nostdlib		# no std lib
+CFLAGS+= -fno-builtin			# no gcc built-in function
+CFLAGS+= -nostdinc				# no std head file
+CFLAGS+= -fno-pic				# position independent code
+CFLAGS+= -fno-pie				# position independent executable
+CFLAGS+= -nostdlib				# no std lib
 CFLAGS+= -fno-stack-protector	# no stack protector
 CFLAGS:= $(strip ${CFLAGS})
 
 CFLAGS_64:= -m64 # 64 bit program
 #CFLAGS_64+= -masm=intel
-CFLAGS_64+= -fno-builtin	# no gcc built-in function
-CFLAGS_64+= -nostdinc		# no std head file
-CFLAGS_64+= -fno-pic		# position independent code
-CFLAGS_64+= -fno-pie		# position independent executable
-CFLAGS_64+= -nostdlib		# no std lib
+CFLAGS_64+= -fno-builtin			# no gcc built-in function
+CFLAGS_64+= -nostdinc				# no std head file
+CFLAGS_64+= -fno-pic				# position independent code
+CFLAGS_64+= -fno-pie				# position independent executable
+CFLAGS_64+= -nostdlib				# no std lib
 CFLAGS_64+= -fno-stack-protector	# no stack protector
+CFLAGS_64+= -ffreestanding
 CFLAGS_64:= $(strip ${CFLAGS_64})
 
 DEBUG:= -g
@@ -45,7 +46,7 @@ ${BIN}/boot.bin: ./src/boot/boot.asm
 # setup.bin
 ${BIN}/setup.bin: ${BUILD}/boot/setup.o
 	objcopy -O binary $< $@
-#	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
+	nm ${BUILD}/boot/setup.o | sort > ${BUILD}/system.map
 
 ${BUILD}/boot/setup.o:${BUILD}/boot/setup_asm.o ${BUILD}/boot/setup_c.o ${BUILD}/boot/ldr.o
 	ld -m elf_i386 $^ -o $@ -Ttext 0x500
@@ -71,15 +72,22 @@ ${BUILD}/OStool: ${TOOL}/main.c
 	chmod 777 $<
 
 # kernel.bin
-${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
-	objcopy -O binary $< $@
-#	nm ${BUILD}/kernel.bin | sort > ${BUILD}/system.map
-
-${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
+${BIN}/kernel.bin:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
  						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
  						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
  						${BUILD}/lib/kprintf.o
-	ld -m elf_x86_64 $^ -o $@ -Ttext 0x2000000
+	ld -m elf_x86_64 $^ -o $@ -s -static -T ./linker.ld -n -Map kernel.map
+	#nm ${BUILD}/kernel/kernel.o | sort > ${BUILD}/kernel.map
+
+#${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
+#	objcopy -S -O binary $< $@
+#	nm ${BUILD}/kernel/kernel.o | sort > ${BUILD}/kernel.map
+#
+#${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
+# 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
+# 						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
+# 						${BUILD}/lib/kprintf.o
+#	ld -m elf_x86_64 $^ -o $@ -s -static -Text 0x2000000
 
 ${BUILD}/kernel/kernel_entry.o: ./src/kernel/kernel_entry.asm
 	$(shell mkdir -p ${BUILD}/kernel)
@@ -94,7 +102,7 @@ ${BUILD}/${HAL}/%.o: ./src/${HAL}/%.c
 
 ${BUILD}/${HAL}/%.asm.o: ./src/${HAL}/%.asm
 	$(shell mkdir -p ${BUILD}/${HAL})
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g $< -o $@
 
 ${BUILD}/${HAL}/interrupt/%.o: ./src/${HAL}/interrupt/%.c
 	$(shell mkdir -p ${BUILD}/${HAL}/interrupt)
@@ -102,7 +110,7 @@ ${BUILD}/${HAL}/interrupt/%.o: ./src/${HAL}/interrupt/%.c
 
 ${BUILD}/${HAL}/interrupt/%.asm.o: ./src/${HAL}/interrupt/%.asm
 	$(shell mkdir -p ${BUILD}/${HAL})
-	nasm -f elf64 -I ./src/${HAL}/interrupt $< -o $@
+	nasm -f elf64 -g -I ./src/${HAL}/interrupt $< -o $@
 
 ${BUILD}/lib/%.o: ./src/lib/%.c
 	$(shell mkdir -p ${BUILD}/lib)

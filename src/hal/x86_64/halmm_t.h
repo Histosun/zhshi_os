@@ -75,6 +75,11 @@ typedef struct mpgdesc{
 void mpdesc_t_init(mpgdesc_t * mpgdesc);
 
 // memory page alloc free head list
+#define BAFH_STUS_INIT 0
+#define BAFH_STUS_ONEM 1
+#define BAFH_STUS_DIVP 2
+#define BAFH_STUS_DIVM 3
+
 typedef struct mpafhlst {
     spinlock_t af_lock;
     uint32_t af_stus;
@@ -114,9 +119,15 @@ typedef struct memdivmer
 #define MA_PROC_LSZ (0xffffffff-0x40000000)
 #define MA_PROC_LEND (MA_PROC_LSTART+MA_PROC_LSZ)
 
-struct mafuncobjs;
+struct memarea;
 
-typedef mafuncobjs mafuncobjs_t
+typedef struct mafuncobjs {
+    uint64_t (*mafo_init)(struct memarea * memarea, void* valp, uint_t val);
+    uint64_t (*mafo_exit)(struct memarea * memarea);
+    uint64_t (*mafo_aloc)(struct memarea * memarea, void * mafrspack, void * valp, uint_t val);
+    uint64_t (*mafo_free)(struct memarea * memarea, void * mafrspack, void * valp, uint_t val);
+    uint64_t (*mafo_recy)(struct memarea * memarea, void * mafrspack, void * valp, uint_t val);
+}mafuncobjs_t;
 
 typedef struct memarea{
     list_t ma_list;
@@ -134,24 +145,11 @@ typedef struct memarea{
     adr_t ma_logicstart;
     adr_t ma_logicend;
     uint_t ma_logicsz;
-    adr_t ma_effectstart;
-    adr_t ma_effectend;
-    adr_t ma_effectsz;
-    list_t ma_allmpdesclst;
-    uint_t ma_allmpdscnr;
-    mafuncobjs_t ma_funcobj;
+    struct mafuncobjs ma_funcobj;
     memdivmer_t ma_mdmdata;
     void * ma_privp;
 } memarea_t;
 
-struct mafuncobjs {
-    mmstus_t (*mafo_init)(struct s_MEMAREA* memarea,void* valp,uint_t val);
-    mmstus_t (*mafo_exit)(struct s_MEMAREA* memarea);
-    mmstus_t (*mafo_aloc)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
-    mmstus_t (*mafo_free)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
-    mmstus_t (*mafo_recy)(struct s_MEMAREA* memarea,mmafrets_t* mafrspack,void* valp,uint_t val);
-
-};
-
+void memarea_t_init(memarea_t * p_memarea);
 
 #endif

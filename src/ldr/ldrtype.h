@@ -22,6 +22,9 @@ typedef struct kernel_desc{
     uint64_t mp_desc_arr;   //start address of memory page descriptor array
     uint64_t mp_desc_nr;    //number of memory page descriptors
     uint64_t mp_desc_sz;    //size of memory page descriptor array
+    uint64_t ma_phyadr;     //physical address of memory area array
+    uint64_t ma_nr;
+    uint64_t ma_sz;
     uint64_t next_pg;       //next paging address
 }__attribute__((packed)) kernel_desc_t;
 
