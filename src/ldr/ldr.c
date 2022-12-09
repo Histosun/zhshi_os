@@ -69,7 +69,7 @@ void init_krl_mmap(kernel_desc_t* p_krl_desc){
 
 void init_krl_stack(kernel_desc_t* p_krl_desc){
     p_krl_desc->init_stack = IKSTACK_PHYADR;
-    p_krl_desc->init_stack = IKSTACK_SIZE;
+    p_krl_desc->stack_sz = IKSTACK_SIZE;
 }
 
 //init machine info

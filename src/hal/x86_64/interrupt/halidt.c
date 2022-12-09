@@ -6,9 +6,9 @@
 extern void exc_divide_error();
 extern void exc_default();
 
-idtr_desc_t idtr;
+HAL_DEFGLOB_VARIABLE(idtr_desc_t, idtr);
 
-int_desc_t idt[IDT_MAX];
+HAL_DEFGLOB_VARIABLE(int_desc_t, idt)[IDT_MAX];
 
 void set_idt(uint32_t i, uint8_t type, int_handler handler) {
     int_desc_t * interrupt = &idt[i];

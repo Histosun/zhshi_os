@@ -5,11 +5,10 @@
 #include "../../include/stdio.h"
 #include "../../include/memory.h"
 
-memarea_t memarea_arr[MEMAREA_MAX];
+HAL_DEFGLOB_VARIABLE(memarea_t, memarea_arr)[MEMAREA_MAX];
 
 void init_one_phymm(phymem_desc_t * initp){
-    if (NULL == initp)
-    {
+    if (NULL == initp) {
         return;
     }
     initp->pm_lock.lock = 0;
@@ -29,7 +28,7 @@ void init_one_phymm(phymem_desc_t * initp){
 
 }
 
-int set_phymem_desc(e820_map_t * e8p, phymem_desc_t * phymm){
+int set_phymem_desc(e820_map_t * e8p, phymem_desc_t * phymm) {
     uint32_t ptype = 0, pstype = 0;
     if (NULL == e8p || NULL == phymm)
     {
@@ -75,8 +74,7 @@ int set_phymem_desc(e820_map_t * e8p, phymem_desc_t * phymm){
 
 }
 
-void phymm_swap(phymem_desc_t *s, phymem_desc_t *d)
-{
+void phymm_swap(phymem_desc_t *s, phymem_desc_t *d) {
     phymem_desc_t tmp;
     init_one_phymm(&tmp);
     memcpy(s, &tmp, sizeof(phymem_desc_t));
@@ -162,7 +160,7 @@ uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr)
     return mpnr;
 }
 
-void init_mpdesc(kernel_desc_t * p_kernel_desc){
+void init_mpdesc(kernel_desc_t * p_kernel_desc) {
     uint64_t coremdnr = 0, mpdescnr = 0;
     mpgdesc_t * mpdesc_arr = NULL;
 
@@ -210,7 +208,74 @@ void init_memmanager(kernel_desc_t * p_kernel_desc) {
     init_memarea(p_kernel_desc);
 }
 
+int search_occupympgdesc(mpgdesc_t * start_mpgdesc, uint64_t start, uint64_t end) {
+    if( (start_mpgdesc[0].mp_phyadr.paf_phyadr<<12) != start) {
+        return 0;
+    }
+    int i = 0;
+    for(uint64_t tempadr = start; tempadr < end; ++i, tempadr += PAGE_SIZE) {
+        uint64_t phyadr = start_mpgdesc[i].mp_phyadr.paf_phyadr << PAGE_SHR;
+        if(phyadr != tempadr) {
+            return 0;
+        }
+        if (MF_MOCTY_FREE != start_mpgdesc[i].mp_flgs.mf_mocty ||
+            0 != start_mpgdesc[i].mp_flgs.mf_uindx ||
+            PAF_NO_ALLOC != start_mpgdesc[i].mp_phyadr.paf_alloc) {
+            return 0;
+        }
+        start_mpgdesc[i].mp_flgs.mf_mocty = MF_MOCTY_KRNL;
+        start_mpgdesc[i].mp_flgs.mf_uindx++;
+        start_mpgdesc[i].mp_phyadr.paf_alloc = PAF_ALLOC;
+    }
+    if(i != P4K_ALIGN(end - start) >> PAGE_SHR){
+        return 0;
+    }
+    return i;
+}
+
+void init_krloccupymm(kernel_desc_t * p_kernel_desc) {
+    mpgdesc_t * mpdesc_arr = (mpgdesc_t *) p_kernel_desc->mp_desc_arr;
+    int bios_int = 0;
+    int krl_stack = 0;
+    int krl_seg = 0;
+    for(int i = 0; i < p_kernel_desc->mp_desc_nr; ++i) {
+        if((mpdesc_arr[i].mp_phyadr.paf_phyadr<<PAGE_SHR) == 0x0) {
+            bios_int = search_occupympgdesc(&mpdesc_arr[i], 0x0, 0x1000);
+            if(bios_int == 0) {
+                break;
+            }
+            i += bios_int - 1;
+            continue;
+        }
+        if((mpdesc_arr[i].mp_phyadr.paf_phyadr<<PAGE_SHR) == (p_kernel_desc->init_stack - 0x1000)) {
+            krl_stack = search_occupympgdesc(&mpdesc_arr[i], p_kernel_desc->init_stack - p_kernel_desc->stack_sz , p_kernel_desc->init_stack);
+
+            if(krl_stack == 0) {
+                break;
+            }
+            i += krl_stack - 1;
+            continue;
+        }
+        if((mpdesc_arr[i].mp_phyadr.paf_phyadr<<PAGE_SHR) == (p_kernel_desc->kernel_start)) {
+            krl_seg = search_occupympgdesc(&mpdesc_arr[i], p_kernel_desc->kernel_start, p_kernel_desc->next_pg);
+            if(krl_seg == 0) {
+                break;
+            }
+            i += krl_seg - 1;
+            continue;
+        }
+    }
+
+    if(!(bios_int && krl_stack && krl_seg)) {
+        write_number(0xcafe);
+        while (1);
+    }
+
+}
+
 void init_halmm(kernel_desc_t * p_kernel_desc) {
     init_phymm(p_kernel_desc);
     init_memmanager(p_kernel_desc);
+    init_krloccupymm(p_kernel_desc);
+    
 }
