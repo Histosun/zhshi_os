@@ -139,7 +139,7 @@ bool_t ret_mpdesc_adrandsz(kernel_desc_t * p_kernel_desc, mpgdesc_t** p_mpdesc_a
 }
 
 void set_mpdesc(mpgdesc_t * mpdesc, uint64_t phy_adr) {
-    mpdesc_t_init(mpdesc);
+    mpgdesc_t_init(mpdesc);
     phyadrflgs_t *tmp = (phyadrflgs_t *)(&phy_adr);
     mpdesc->mp_phyadr.paf_phyadr = tmp->paf_phyadr;
 }
@@ -198,7 +198,7 @@ void init_memarea(kernel_desc_t * p_kernel_desc){
     memarea_arr[2].ma_logicend = MA_PROC_LEND;
     memarea_arr[2].ma_logicsz = MA_PROC_LSZ;
 
-    p_kernel_desc->ma_phyadr = memarea_arr;
+    p_kernel_desc->ma_desc_arr = memarea_arr;
     p_kernel_desc->ma_nr = MEMAREA_MAX;
     p_kernel_desc->ma_sz = sizeof (memarea_arr);
 }
@@ -270,12 +270,157 @@ void init_krloccupymm(kernel_desc_t * p_kernel_desc) {
         write_number(0xcafe);
         while (1);
     }
+}
 
+bool_t check_mpgflg(mpgdesc_t * mpg, mpgflgs_t mpgf){
+    return mpg->mp_flgs.mf_marty == mpgf.mf_marty &&
+           mpg->mp_flgs.mf_mocty == MF_MOCTY_FREE &&
+           mpg->mp_flgs.mf_uindx == 0 &&
+           mpg->mp_phyadr.paf_alloc == PAF_NO_ALLOC;
+}
+
+bool_t scan_contiguousmpg(mpgdesc_t * mpg_arr, uint64_t mpgdesc_nr,uint64_t fntmnr, mpgflgs_t mpgflgs,
+                          uint64_t *ret_findmnr) {
+    if(mpg_arr == NULL || mpgdesc_nr == 0 || fntmnr >= mpgdesc_nr || mpgflgs.mf_marty == MA_TYPE_INIT || ret_findmnr == NULL)
+        return FALSE;
+
+    if(check_mpgflg(&mpg_arr[fntmnr], mpgflgs) == FALSE) {
+        *ret_findmnr = 0;
+        return TRUE;
+    }
+
+    *ret_findmnr = 1;
+    for(;fntmnr < mpgdesc_nr - 1;++fntmnr, ++(*ret_findmnr)) {
+        if(check_mpgflg(&mpg_arr[fntmnr+1], mpgflgs) == FALSE) {
+            return TRUE;
+        }
+        uint64_t pre_phyadr = mpg_arr[fntmnr].mp_phyadr.paf_phyadr << PAGE_SHR;
+        uint64_t cur_phyadr = mpg_arr[fntmnr + 1].mp_phyadr.paf_phyadr << PAGE_SHR;
+        if(cur_phyadr - pre_phyadr != PAGE_SIZE)
+            break;
+    }
+    return TRUE;
+}
+
+uint_t find_mount_mpafhlst(memarea_t *pmemarea, uint_t remain_nr){
+    uint_t mount_pos = 0;
+    for(uint_t bi = 0; bi < MDIVMER_ARR_LMAX; ++ bi) {
+        if(pmemarea->ma_mdmdata.dm_mdmlielst[bi].af_oderpnr <= remain_nr) {
+            mount_pos = bi;
+        }
+    }
+    return mount_pos;
+}
+
+bool_t mount_mpg_mpafhlst(mpafhlst_t *mpafhlst, mpgdesc_t *mpg_start, mpgdesc_t * mpg_end){
+    if(mpafhlst == NULL || mpg_start == NULL || mpg_end == NULL)
+        return FALSE;
+    uint_t mount_nr = mpg_end - mpg_start + 1;
+    if(mount_nr != mpafhlst->af_oderpnr)
+        return FALSE;
+    mpg_start->mp_flgs.mf_olkty = MF_OLKTY_ODER;
+    mpg_start->mp_odlink = mpg_end;
+    mpg_end->mp_flgs.mf_olkty = MF_OLKTY_BAFH;
+    mpg_end->mp_odlink = mpafhlst;
+    list_add(&mpg_start->mp_list, &mpafhlst->af_frelst);
+    mpafhlst->af_fobjnr += mount_nr;
+    mpafhlst->al_mobjnr += mount_nr;
+    return TRUE;
+}
+
+bool_t mount_mpg_memarea(memarea_t *pmemarea, mpgdesc_t *mpgdesc_arr, uint64_t mpgdesc_nr, uint64_t start_idx, uint64_t find_nr) {
+    if(pmemarea == NULL || mpgdesc_arr == NULL || mpgdesc_nr < start_idx + find_nr || find_nr == 0)
+        return FALSE;
+    uint_t remain_nr = find_nr;
+    uint_t in = 0;
+    uint_t mount_start = start_idx;
+    for(;remain_nr != 0;) {
+        uint_t mount_pos = find_mount_mpafhlst(pmemarea, remain_nr);
+        uint_t mount_nr = pmemarea->ma_mdmdata.dm_mdmlielst[mount_pos].af_oderpnr;
+        if(remain_nr < mount_nr)
+            return FALSE;
+        mount_mpg_mpafhlst(&pmemarea->ma_mdmdata.dm_mdmlielst[mount_pos], &mpgdesc_arr[mount_start], &mpgdesc_arr[mount_start+mount_nr-1]);
+        pmemarea->ma_freepages += mount_nr;
+        pmemarea->ma_maxpages += mount_nr;
+        remain_nr -= mount_nr;
+        mount_start = start_idx + mount_nr;
+    }
+    return TRUE;
+}
+
+bool_t merge_mpdesc_memarea(memarea_t * pmarea, mpgdesc_t * mpgdesc_arr, uint64_t mpgdesc_nr) {
+    if(pmarea == NULL || mpgdesc_arr == NULL || mpgdesc_nr == 0) {
+        return FALSE;
+    }
+    if(pmarea->ma_type == MA_TYPE_INIT) {
+        return FALSE;
+    }
+    mpgflgs_t mpgflg;
+    mpgflg.mf_marty = MA_TYPE_INIT;
+    switch (pmarea->ma_type) {
+        case MA_TYPE_HWAD:
+            mpgflg.mf_marty = MA_TYPE_HWAD;
+            break;
+        case MA_TYPE_KRNL:
+            mpgflg.mf_marty = MA_TYPE_KRNL;
+            break;
+        case MA_TYPE_PROC:
+            mpgflg.mf_marty = MA_TYPE_PROC;
+    }
+    if(mpgflg.mf_marty == MA_TYPE_INIT) {
+        return FALSE;
+    }
+    uint64_t fntmnr = 0, ret_findmnr = 0;
+
+    for(;fntmnr < mpgdesc_nr;) {
+        ret_findmnr = 0;
+        if(scan_contiguousmpg(mpgdesc_arr, mpgdesc_nr, fntmnr, mpgflg, &ret_findmnr) == FALSE) {
+            return FALSE;
+        }
+        if(ret_findmnr == 0){
+            ++fntmnr;
+            continue;
+        }
+        if(mount_mpg_memarea(pmarea, mpgdesc_arr, mpgdesc_nr, fntmnr, ret_findmnr) == FALSE)
+            return FALSE;
+        fntmnr += ret_findmnr;
+    }
+    return TRUE;
+}
+
+void init_merdiv(kernel_desc_t * p_kernel_desc) {
+    mpgdesc_t * mpdescs = p_kernel_desc->mp_desc_arr;
+    memarea_t * memareas = p_kernel_desc->ma_desc_arr;
+    uint64_t phyadr = 0;
+
+    // set every mpgdesc's memory area type
+    for(int i = 0; i < p_kernel_desc->mp_desc_nr; ++i) {
+        for(int j = 0; j < p_kernel_desc->ma_nr; ++j) {
+            phyadr = mpdescs[i].mp_phyadr.paf_phyadr << PAGE_SHR;
+            if(phyadr>=memareas[j].ma_logicstart && (phyadr+PAGE_SIZE-1)<=memareas[j].ma_logicend) {
+                mpdescs[i].mp_flgs.mf_marty = memareas[j].ma_type;
+                break;
+            }
+        }
+        // mpgdesc memory type should not be MA_TYPE_INIT after the setting
+        if(mpdescs[i].mp_flgs.mf_marty == MA_TYPE_INIT) {
+            write_number(mpdescs[i].mp_flgs.mf_marty);
+            while (1);
+        }
+    }
+
+    // mount mpgdesc to the memarea it belongs to.
+    for(int i = 0; i < p_kernel_desc->ma_nr; ++i) {
+        if(merge_mpdesc_memarea(&memareas[i], mpdescs, p_kernel_desc->mp_desc_nr) == FALSE) {
+            write_number(0xed);
+            while (1);
+        }
+    }
 }
 
 void init_halmm(kernel_desc_t * p_kernel_desc) {
     init_phymm(p_kernel_desc);
     init_memmanager(p_kernel_desc);
     init_krloccupymm(p_kernel_desc);
-    
+    init_merdiv(p_kernel_desc);
 }

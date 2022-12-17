@@ -35,7 +35,7 @@ typedef struct mpgflgs{
     uint32_t mf_mocty:2;
     uint32_t mf_marty:3;
     uint32_t mf_uindx:24;
-}__attribute__((packed)) msadflgs_t;
+}__attribute__((packed)) mpgflgs_t;
 
 //physical address flags
 #define  PAF_NO_ALLOC (0)
@@ -67,12 +67,12 @@ typedef struct phyadrflgs{
 typedef struct mpgdesc{
     list_t mp_list;
     spinlock_t mp_lock;
-    msadflgs_t mp_flgs;
+    mpgflgs_t mp_flgs;
     phyadrflgs_t mp_phyadr;
     void * mp_odlink;
 }__attribute__((packed)) mpgdesc_t;
 
-void mpdesc_t_init(mpgdesc_t * mpgdesc);
+void mpgdesc_t_init(mpgdesc_t * mpgdesc);
 
 // memory page alloc free head list
 #define BAFH_STUS_INIT 0
@@ -83,12 +83,12 @@ void mpdesc_t_init(mpgdesc_t * mpgdesc);
 typedef struct mpafhlst {
     spinlock_t af_lock;
     uint32_t af_stus;
-    uint32_t af_oder;
-    uint32_t af_oderpnr;
-    uint32_t af_fobjnr;
-    uint32_t al_aobjnr;
-    uint32_t af_alcindx;
-    uint32_t af_freindx;
+    uint_t af_oder;
+    uint_t af_oderpnr;
+    uint_t af_fobjnr;
+    uint_t al_mobjnr;
+    uint_t af_alcindx;
+    uint_t af_freindx;
     list_t af_frelst;
     list_t af_alclst;
 } mpafhlst_t;

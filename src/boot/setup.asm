@@ -81,7 +81,7 @@ protected_entrance:
     call chk_cpu_long_mode
 
     mov ebx, 5
-    mov ecx, 60
+    mov ecx, 200
     mov edi, KERNEL_START - KERNEL_OFF
     call ata_lba_read
 

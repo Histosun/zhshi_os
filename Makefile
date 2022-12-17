@@ -36,7 +36,7 @@ all: clean ${FILES}
 	bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $(BUILD)/$(HD_IMG_NAME)
 	dd if=${BIN}/boot.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=0 count=1 conv=notrunc
 	dd if=${BIN}/setup.bin of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=1 count=4 conv=notrunc
-	dd if=${BIN}/kernel.pkg of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=5 count=60 conv=notrunc
+	dd if=${BIN}/kernel.pkg of=$(BUILD)/$(HD_IMG_NAME) bs=512 seek=5 count=200 conv=notrunc
 
 #boot.bin
 ${BIN}/boot.bin: ./src/boot/boot.asm
@@ -72,11 +72,21 @@ ${BUILD}/OStool: ${TOOL}/main.c
 	chmod 777 $<
 
 # kernel.bin
-${BIN}/kernel.bin:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
+${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
+	objcopy -O binary $< $@
+	nm ${BUILD}/kernel/kernel.o | sort > ${BUILD}/kernel.map
+
+${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
  						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
  						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
  						${BUILD}/lib/kprintf.o
-	ld -m elf_x86_64 $^ -o $@ -s -static -T ./linker.ld -n -Map kernel.map
+	ld $^ -o $@ -T ./linker.ld -n -Map kernel.map
+
+#${BIN}/kernel.bin:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
+# 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
+# 						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
+# 						${BUILD}/lib/kprintf.o
+#	ld -m elf_x86_64 $^ -o $@ -s -static -T ./linker.ld -n -Map kernel.map
 	#nm ${BUILD}/kernel/kernel.o | sort > ${BUILD}/kernel.map
 
 #${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
@@ -126,7 +136,7 @@ bochs:
 	bochs -q -f bochsrc
 
 qemug: all
-	qemu-system-x86_64 -m 2048 -hda $(BUILD)/$(HD_IMG_NAME) -S -s
+	qemu-system-x86_64 -m 2048 -hda $(BUILD)/$(HD_IMG_NAME) -s
 
 qemu: all
 	qemu-system-x86_64 -m 2048 -hda $(BUILD)/$(HD_IMG_NAME)

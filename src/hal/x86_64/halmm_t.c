@@ -1,6 +1,6 @@
 #include "halmm_t.h"
 
-void mpdesc_t_init(mpgdesc_t * mpgdesc){
+void mpgdesc_t_init(mpgdesc_t * mpgdesc){
     list_t_init(&mpgdesc->mp_list);
     mpgdesc->mp_lock.lock = 0;
     mpgdesc->mp_flgs.mf_olkty = MF_OLKTY_INIT;
@@ -29,7 +29,7 @@ void mpafhlst_t_init(mpafhlst_t * p_mpafhlst, uint32_t stus, uint_t oder){
     p_mpafhlst->af_oder = oder;
     p_mpafhlst->af_oderpnr = 1UL << oder;
     p_mpafhlst->af_fobjnr = 0;
-    p_mpafhlst->al_aobjnr = 0;
+    p_mpafhlst->al_mobjnr = 0;
     p_mpafhlst->af_freindx = 0;
     p_mpafhlst->af_alcindx = 0;
     list_t_init(&p_mpafhlst->af_alclst);

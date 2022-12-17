@@ -16,10 +16,13 @@ void copy_kernel_desc(kernel_desc_t * p_kernel_desc) {
 }
 
 void kernel_main(){
+    for(int i = 0; i < 1000000; ++i) {
+        write_number(i);
+    }
     copy_kernel_desc(&kernel_info);
     init_hal(&kernel_info);
 
 //    __asm__("sti;");
-    printk("Hello kernel! %d", kernel_info.mp_desc_nr);
+    printk("Hello kernel!");
     while (1);
 }
