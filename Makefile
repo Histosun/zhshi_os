@@ -25,6 +25,7 @@ CFLAGS_64+= -fno-pie				# position independent executable
 CFLAGS_64+= -nostdlib				# no std lib
 CFLAGS_64+= -fno-stack-protector	# no stack protector
 CFLAGS_64+= -ffreestanding
+CFLAGS_64+= -g
 CFLAGS_64:= $(strip ${CFLAGS_64})
 
 DEBUG:= -g
@@ -77,8 +78,9 @@ ${BIN}/kernel.bin: ${BUILD}/kernel/kernel.o
 	nm ${BUILD}/kernel/kernel.o | sort > ${BUILD}/kernel.map
 
 ${BUILD}/kernel/kernel.o:${BUILD}/kernel/kernel_entry.o ${BUILD}/kernel/kernel_c.o \
- 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o ${BUILD}/${HAL}/halmm.o ${BUILD}/${HAL}/halmm_t.o\
+ 						${BUILD}/${HAL}/halinit.o ${BUILD}/${HAL}/halconsole.o\
  						${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halidt.o ${BUILD}/${HAL}/interrupt/halisr.asm.o ${BUILD}/${HAL}/interrupt/interrupt_handler.o\
+ 						${BUILD}/${HAL}/memory/halmm.o ${BUILD}/${HAL}/memory/halmm_t.o\
  						${BUILD}/lib/kprintf.o
 	ld $^ -o $@ -T ./linker.ld -n -Map kernel.map
 
@@ -116,11 +118,15 @@ ${BUILD}/${HAL}/%.asm.o: ./src/${HAL}/%.asm
 
 ${BUILD}/${HAL}/interrupt/%.o: ./src/${HAL}/interrupt/%.c
 	$(shell mkdir -p ${BUILD}/${HAL}/interrupt)
-	gcc ${CFLAGS_64} ${DEBUG} -c $< -o $@
+	gcc ${CFLAGS_64} -c $< -o $@
 
 ${BUILD}/${HAL}/interrupt/%.asm.o: ./src/${HAL}/interrupt/%.asm
 	$(shell mkdir -p ${BUILD}/${HAL})
 	nasm -f elf64 -g -I ./src/${HAL}/interrupt $< -o $@
+
+${BUILD}/${HAL}/memory/%.o: ./src/${HAL}/memory/%.c
+	$(shell mkdir -p ${BUILD}/${HAL}/memory)
+	gcc ${CFLAGS_64} -c $< -o $@
 
 ${BUILD}/lib/%.o: ./src/lib/%.c
 	$(shell mkdir -p ${BUILD}/lib)

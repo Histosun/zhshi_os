@@ -1,10 +1,10 @@
 #ifndef HAL_MM_T_H
 #define HAL_MM_T_H
 
-#include "../../include/type.h"
-#include "../../include/btypeinc/spinlock.h"
-#include "../../include/btypeinc/list_t.h"
-#include "../../include/btypeinc/sem_t.h"
+#include "../../../include/type.h"
+#include "../../../include/btypeinc/spinlock.h"
+#include "../../../include/btypeinc/list_t.h"
+#include "../../../include/btypeinc/sem_t.h"
 
 //memory page management struct
 

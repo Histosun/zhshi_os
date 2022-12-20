@@ -1,5 +1,5 @@
 #include "halinit.h"
-#include "halmm.h"
+#include "memory/halmm.h"
 #include "halconsole.h"
 #include "interrupt/halidt.h"
 

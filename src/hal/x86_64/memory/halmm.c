@@ -1,9 +1,9 @@
 #include "halmm.h"
 #include "halmm_t.h"
-#include "halinit.h"
-#include "halconsole.h"
-#include "../../include/stdio.h"
-#include "../../include/memory.h"
+#include "../halinit.h"
+#include "../halconsole.h"
+#include "../../../include/stdio.h"
+#include "../../../include/memory.h"
 
 HAL_DEFGLOB_VARIABLE(memarea_t, memarea_arr)[MEMAREA_MAX];
 

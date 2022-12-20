@@ -1,9 +1,9 @@
 #ifndef HAL_MM_H
 #define HAL_MM_H
 
-#include "../../include/type.h"
-#include "../../include/btypeinc/spinlock.h"
-#include "haltype.h"
+#include "../../../include/type.h"
+#include "../../../include/btypeinc/spinlock.h"
+#include "../haltype.h"
 
 #define RAM_USABLE 1
 #define RAM_RESERV 2
