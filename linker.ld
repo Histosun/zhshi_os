@@ -6,22 +6,22 @@ SECTIONS
 {
 	. =LINEAR_ADDRESS;
 
-    .text : ALIGN(4096)
+    .text : ALIGN(16)
     {
         *(.text)
     }
 
-    .rodata : ALIGN(4096)
+    .rodata : ALIGN(16)
     {
         *(.rodata)
     }
 
-    .data : ALIGN(4096)
+    .data : ALIGN(16)
     {
         *(.data)
     }
 
-    .bss : ALIGN(4096)
+    .bss : ALIGN(16)
     {
         *(COMMON)
         *(.bss)

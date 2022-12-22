@@ -4,10 +4,12 @@
 #include "../halconsole.h"
 #include "../../../include/stdio.h"
 #include "../../../include/memory.h"
+#include "../halplatform.h"
 
 HAL_DEFGLOB_VARIABLE(memarea_t, memarea_arr)[MEMAREA_MAX];
+HAL_DEFGLOB_VARIABLE(memmgrob_t , memmgrob);
 
-void init_one_phymm(phymem_desc_t * initp){
+void init_one_phymm(phymmap_t * initp){
     if (NULL == initp) {
         return;
     }
@@ -28,7 +30,7 @@ void init_one_phymm(phymem_desc_t * initp){
 
 }
 
-int set_phymem_desc(e820_map_t * e8p, phymem_desc_t * phymm) {
+int set_phymem_desc(e820_map_t * e8p, phymmap_t * phymm) {
     uint32_t ptype = 0, pstype = 0;
     if (NULL == e8p || NULL == phymm)
     {
@@ -74,16 +76,16 @@ int set_phymem_desc(e820_map_t * e8p, phymem_desc_t * phymm) {
 
 }
 
-void phymm_swap(phymem_desc_t *s, phymem_desc_t *d) {
-    phymem_desc_t tmp;
+void phymm_swap(phymmap_t *s, phymmap_t *d) {
+    phymmap_t tmp;
     init_one_phymm(&tmp);
-    memcpy(s, &tmp, sizeof(phymem_desc_t));
-    memcpy(d, s, sizeof(phymem_desc_t));
-    memcpy(&tmp, d, sizeof(phymem_desc_t));
+    memcpy(s, &tmp, sizeof(phymmap_t));
+    memcpy(d, s, sizeof(phymmap_t));
+    memcpy(&tmp, d, sizeof(phymmap_t));
     return;
 }
 
-void sort_phymm(phymem_desc_t * phymm_arr, uint64_t num) {
+void sort_phymm(phymmap_t * phymm_arr, uint64_t num) {
     uint64_t i, j, k = num - 1;
     for (j = 0; j < k; j++) {
         for (i = 0; i < k - j; i++) {
@@ -101,7 +103,7 @@ void init_phymm(kernel_desc_t * p_kernel_desc) {
         while (1);
     }
     uint64_t temp = p_kernel_desc->next_pg;
-    phymem_desc_t * phymm = (phymem_desc_t *)temp;
+    phymmap_t * phymm = (phymmap_t *)temp;
     e820_map_t * e8p = (e820_map_t *)p_kernel_desc->mmap_adr;
     for(int i=0; i < p_kernel_desc->mmap_nr; ++i){
         if(set_phymem_desc(&e8p[i], &phymm[i]) == FALSE){
@@ -110,19 +112,19 @@ void init_phymm(kernel_desc_t * p_kernel_desc) {
         }
     }
     p_kernel_desc->mmap_adr = (uint64_t)phymm;
-    p_kernel_desc->mmap_sz = p_kernel_desc->mmap_nr * sizeof(phymem_desc_t);
+    p_kernel_desc->mmap_sz = p_kernel_desc->mmap_nr * sizeof(phymmap_t);
     sort_phymm(phymm, p_kernel_desc->mmap_nr);
-    p_kernel_desc->next_pg = P4K_ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymem_desc_t));
+    p_kernel_desc->next_pg = P4K_ALIGN(temp + p_kernel_desc->mmap_nr * sizeof(phymmap_t));
 }
 
 bool_t ret_mpdesc_adrandsz(kernel_desc_t * p_kernel_desc, mpgdesc_t** p_mpdesc_arr, uint64_t * p_mpdescnr) {
     if(p_kernel_desc == NULL || p_mpdesc_arr == NULL || p_mpdescnr == NULL) {
         return FALSE;
     }
-    if(p_kernel_desc->mmap_nr < 1 || p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_sz != p_kernel_desc->mmap_nr * sizeof(phymem_desc_t)) {
+    if(p_kernel_desc->mmap_nr < 1 || p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_sz != p_kernel_desc->mmap_nr * sizeof(phymmap_t)) {
         return FALSE;
     }
-    phymem_desc_t * phymem_arr = p_kernel_desc->mmap_adr;
+    phymmap_t * phymem_arr = p_kernel_desc->mmap_adr;
     uint64_t umemsz = 0, mpdescnr = 0;
     for(int i = 0; i < p_kernel_desc->mmap_nr; ++i){
         if(phymem_arr[i].pm_type == PMR_T_OSAPUSERRAM){
@@ -145,7 +147,7 @@ void set_mpdesc(mpgdesc_t * mpdesc, uint64_t phy_adr) {
 }
 
 uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr) {
-    phymem_desc_t * pm_arr = p_kernel_desc->mmap_adr;
+    phymmap_t * pm_arr = p_kernel_desc->mmap_adr;
     uint64_t mpnr = 0;
     for(int i = 0; i < p_kernel_desc->mmap_nr; ++i) {
         if(pm_arr[i].pm_type == PMR_T_OSAPUSERRAM) {
@@ -418,9 +420,33 @@ void init_merdiv(kernel_desc_t * p_kernel_desc) {
     }
 }
 
+void init_memmgrob(kernel_desc_t * p_kernel_desc) {
+    memmgrob_init(&memmgrob);
+    memmgrob.mo_phymem_arr = (phymmap_t *) phyadr_to_viradr(p_kernel_desc->mmap_adr);
+    memmgrob.mo_phymem_nr = p_kernel_desc->mmap_nr;
+    memmgrob.mo_memarea_arr = (memarea_t *) phyadr_to_viradr(p_kernel_desc->ma_desc_arr);
+    memmgrob.mo_memarea_nr = p_kernel_desc->ma_nr;
+    memmgrob.mo_mpgdesc_arr = (mpgdesc_t *) phyadr_to_viradr(p_kernel_desc->mp_desc_arr);
+    memmgrob.mo_mpgdesc_nr = p_kernel_desc->mp_desc_nr;
+
+    memmgrob.mo_memsz = p_kernel_desc->mp_desc_nr << PAGE_SHR;
+    memmgrob.mo_maxpages = p_kernel_desc->mp_desc_nr;
+
+    uint_t aidx = 0;
+    for(int i = 0; i < memmgrob.mo_mpgdesc_nr;++i) {
+        if(memmgrob.mo_mpgdesc_arr[i].mp_flgs.mf_uindx == 1 &&
+            memmgrob.mo_mpgdesc_arr[i].mp_flgs.mf_mocty == MF_MOCTY_KRNL &&
+            memmgrob.mo_mpgdesc_arr[i].mp_phyadr.paf_alloc == PAF_ALLOC)
+            ++aidx;
+    }
+    memmgrob.mo_alocpages = aidx;
+    memmgrob.mo_freepages = memmgrob.mo_maxpages - aidx;
+}
+
 void init_halmm(kernel_desc_t * p_kernel_desc) {
     init_phymm(p_kernel_desc);
     init_memmanager(p_kernel_desc);
     init_krloccupymm(p_kernel_desc);
     init_merdiv(p_kernel_desc);
+    init_memmgrob(p_kernel_desc);
 }

@@ -64,3 +64,23 @@ void memarea_t_init(memarea_t * p_memarea) {
     memdivmer_t_init(&p_memarea->ma_mdmdata);
     p_memarea->ma_privp = NULL;
 }
+
+void memmgrob_init(memmgrob_t * initp) {
+    list_t_init(&initp->mo_list);
+    initp->mo_lock.lock = 0;
+    initp->mo_stus = 0;
+    initp->mo_flgs = 0;
+    initp->mo_memsz = 0;
+    initp->mo_maxpages = 0;
+    initp->mo_freepages = 0;
+    initp->mo_alocpages = 0;
+    initp->mo_resvpages = 0;
+    initp->mo_horizline = 0;
+    initp->mo_phymem_arr = NULL;
+    initp->mo_phymem_nr = 0;
+    initp->mo_mpgdesc_arr = NULL;
+    initp->mo_mpgdesc_nr= 0;
+    initp->mo_memarea_arr = NULL;
+    initp->mo_memarea_nr = 0;
+    return;
+}

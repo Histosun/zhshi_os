@@ -5,6 +5,7 @@
 #include "../../../include/btypeinc/spinlock.h"
 #include "../../../include/btypeinc/list_t.h"
 #include "../../../include/btypeinc/sem_t.h"
+#include "halmm.h"
 
 //memory page management struct
 
@@ -151,5 +152,26 @@ typedef struct memarea{
 } memarea_t;
 
 void memarea_t_init(memarea_t * p_memarea);
+
+typedef struct s_MEMMGROB {
+    list_t mo_list;
+    spinlock_t mo_lock;
+    uint_t mo_stus;
+    uint_t mo_flgs;
+    uint64_t mo_memsz;
+    uint64_t mo_maxpages;
+    uint64_t mo_freepages;
+    uint64_t mo_alocpages;
+    uint64_t mo_resvpages;
+    uint64_t mo_horizline;
+    phymmap_t * mo_phymem_arr;
+    uint64_t mo_phymem_nr;
+    mpgdesc_t * mo_mpgdesc_arr;
+    uint64_t mo_mpgdesc_nr;
+    memarea_t * mo_memarea_arr;
+    uint64_t mo_memarea_nr;
+}memmgrob_t;
+
+void memmgrob_init(memmgrob_t * initp);
 
 #endif
