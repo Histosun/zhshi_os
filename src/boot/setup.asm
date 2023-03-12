@@ -36,7 +36,7 @@ _start:
     or eax, 0x1
     mov cr0, eax
 
-    jmp CODE_SEG:protected_entrance
+    jmp CODE_SEG: protected_entrance
 
 get_mmap:
     xor ebx, ebx
