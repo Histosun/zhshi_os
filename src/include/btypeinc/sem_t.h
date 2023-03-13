@@ -13,15 +13,15 @@ typedef struct wlst {
     spinlock_t wl_lock;
     uint_t wl_tdnr;
     list_t wl_list;
-}wlst_t;
+} wlst_t;
 
 typedef struct wlst_head {
     list_t wlh_list;
     spinlock_t wlh_lock;
     atomic_t wlh_count;
-    void* wlh_privte;
+    void *wlh_privte;
     bool_t (*wlh_upfun)(uint32_t func, struct wlst_head* wlhp);
-}wlst_head_t;
+} wlst_head_t;
 
 #define SEM_FLG_MUTEX 0
 #define SEM_FLG_MULTI 1
@@ -33,6 +33,6 @@ typedef struct s_SEM {
     uint_t sem_flg;
     sint_t sem_count;
     wlst_t sem_waitlst;
-}sem_t;
+} sem_t;
 
 #endif

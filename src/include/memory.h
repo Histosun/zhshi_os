@@ -1,5 +1,6 @@
 #ifndef MEM_H
 #define MEM_H
+
 #include "type.h"
 
 KLINE void memset(void * addr, char val, uint32_t size) {

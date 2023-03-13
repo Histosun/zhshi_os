@@ -10,7 +10,7 @@
 #define ZHOS_MAGIC (uint64_t)((((uint64_t)'Z')<<56)|(((uint64_t)'H')<<48)|(((uint64_t)'O')<<40)|(((uint64_t)'S')<<32)|(((uint64_t)'M')<<24)|(((uint64_t)'A')<<16)|(((uint64_t)'C')<<8)|((uint64_t)'H'))
 
 typedef struct kernel_desc{
-    uint64_t kernel_magic;  //magic of os
+    uint64_t kernel_magic;  //magic number of os
     uint64_t kernel_start;  //starting address of kernel
     uint64_t kernel_size;   //kernel size
     uint64_t init_stack;    //kernel stack address
