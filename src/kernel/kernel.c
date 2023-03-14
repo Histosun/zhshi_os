@@ -17,7 +17,7 @@ void copy_kernel_desc(kernel_desc_t * p_kernel_desc) {
 
 void kernel_main() {
     
-    for(int i = 0; i < 10000000; ++i) {
+    for(int i = 0; i < 3000000; ++i) {
         write_number(i);
     }
     copy_kernel_desc(&kernel_info);

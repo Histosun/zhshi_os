@@ -7,5 +7,5 @@
         "string.h": "c",
         "ldrtype.h": "c"
     },
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "enabled",
 }
