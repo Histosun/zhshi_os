@@ -33,7 +33,7 @@ void load_idt(idtr_desc_t *idtptr) {
 }
 
 //For now hard coded. Will use macro to replace it in future
-void init_8259a(){
+void init_8259a() {
     out_byte(0x20, 0x11);
     out_byte(0xA0, 0x11);
     out_byte(0x21, 0x20);
@@ -47,12 +47,16 @@ void init_8259a(){
     out_byte(0xA1, 0xff);
 }
 
-void init_idt(){
+void init_idt() {
     idtr.limit = sizeof(idt) - 1;
-    idtr.base = (uint64_t)idt;
+    idtr.base = (uint64_t) idt;
+
     set_idt(INT_DESC_DIVIDE, INT_DPL_KERNEL|INT_GATE, exc_divide_error);
     set_idt(1, INT_DPL_KERNEL|INT_GATE, exc_divide_error);
+
     init_8259a();
+
     set_idt(0x21, INT_DPL_KERNEL|INT_GATE, exc_default);
+
     load_idt(&idtr);
 }

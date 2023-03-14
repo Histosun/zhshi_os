@@ -28,4 +28,5 @@ typedef void (*int_handler) ();
 #define INT_GATE 0x8E
 
 void init_idt();
+
 #endif

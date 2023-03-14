@@ -19,7 +19,6 @@ void mpgdesc_t_init(mpgdesc_t * mpgdesc){
     mpgdesc->mp_phyadr.paf_busy = PAF_NO_BUSY;
     mpgdesc->mp_phyadr.paf_rsv = PAF_RSV_VAL;
     mpgdesc->mp_phyadr.paf_phyadr = PAF_INIT_PADRS;
-
     mpgdesc->mp_odlink = NULL;
 }
 
@@ -32,6 +31,7 @@ void mpafhlst_t_init(mpafhlst_t * p_mpafhlst, uint32_t stus, uint_t oder){
     p_mpafhlst->al_mobjnr = 0;
     p_mpafhlst->af_freindx = 0;
     p_mpafhlst->af_alcindx = 0;
+
     list_t_init(&p_mpafhlst->af_alclst);
     list_t_init(&p_mpafhlst->af_frelst);
 }
@@ -41,14 +41,17 @@ void memdivmer_t_init (memdivmer_t * p_memdivmer) {
     p_memdivmer->dm_stus = 0;
     p_memdivmer->dm_divnr = 0;
     p_memdivmer->dm_mernr = 0;
+
     for(int i =0 ;i< MDIVMER_ARR_LMAX; ++i) {
         mpafhlst_t_init(&p_memdivmer->dm_mdmlielst[i], BAFH_STUS_DIVM, i);
     }
+
     mpafhlst_t_init(&p_memdivmer->dm_onemsalst, BAFH_STUS_ONEM, 0);
 }
 
 void memarea_t_init(memarea_t * p_memarea) {
     list_t_init(& p_memarea->ma_list);
+
     p_memarea->ma_lock.lock = 0;
     p_memarea->ma_stus = 0;
     p_memarea->ma_flgs = 0;
@@ -61,12 +64,14 @@ void memarea_t_init(memarea_t * p_memarea) {
     p_memarea->ma_logicstart = 0;
     p_memarea->ma_logicend = 0;
     p_memarea->ma_logicsz = 0;
+
     memdivmer_t_init(&p_memarea->ma_mdmdata);
     p_memarea->ma_privp = NULL;
 }
 
 void memmgrob_init(memmgrob_t * initp) {
     list_t_init(&initp->mo_list);
+
     initp->mo_lock.lock = 0;
     initp->mo_stus = 0;
     initp->mo_flgs = 0;
@@ -82,5 +87,6 @@ void memmgrob_init(memmgrob_t * initp) {
     initp->mo_mpgdesc_nr= 0;
     initp->mo_memarea_arr = NULL;
     initp->mo_memarea_nr = 0;
+
     return;
 }

@@ -10,10 +10,10 @@
 typedef struct int_desc {
     uint16_t offset_0;  // Offset 0-15
     uint16_t selector;  // GDT selector
-    uint8_t zero_1;       // Reserved, always set to zero
+    uint8_t zero_1;     // Reserved, always set to zero
     uint8_t type;       // Type of the interrupt descriptor
-    uint16_t offset_1;  // offset 0-32
-    uint32_t offset_2;
+    uint16_t offset_1;  // offset 16-31
+    uint32_t offset_2;  // offset 32-63
     uint32_t  zero_2;
 }__attribute__((packed)) int_desc_t;
 

@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "chkhdw.h": "c",
+        "kernel.h": "c",
+        "stdint.h": "c",
+        "type.h": "c",
+        "string.h": "c",
+        "ldrtype.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}
