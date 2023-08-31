@@ -57,7 +57,6 @@ ata_lba_read:
 .next_sector:
     push ecx
 
-
     mov dx, 0x1f7
 .check_hd:
     in al, dx

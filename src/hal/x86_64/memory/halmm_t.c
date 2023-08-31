@@ -69,7 +69,7 @@ void memarea_t_init(memarea_t * p_memarea) {
     p_memarea->ma_privp = NULL;
 }
 
-void memmgrob_init(memmgrob_t * initp) {
+void memmgrob_t_init(memmgrob_t * initp) {
     list_t_init(&initp->mo_list);
 
     initp->mo_lock.lock = 0;

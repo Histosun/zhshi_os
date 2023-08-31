@@ -5,15 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gdb qemu debug",                    
+            "name": "gdb qemu debug",                               // launch name
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build/kernel/kernel.o",    // symbol file
-            "cwd": "${workspaceRoot}",
+            "program": "${workspaceFolder}/build/kernel/kernel.o",  // symbol file
+            "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",                       // path of gdb
-            "miDebuggerServerAddress": "localhost:1234"             // lost of remote server
+            "miDebuggerServerAddress": "localhost:1234"             // address of remote server
         }
     ],
 }

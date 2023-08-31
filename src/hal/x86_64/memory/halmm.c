@@ -13,6 +13,7 @@ void init_one_phymm(phymmap_t * initp){
     if (NULL == initp) {
         return;
     }
+
     initp->pm_lock.lock = 0;
     initp->pm_type = 0;
     initp->pm_stype = 0;
@@ -26,17 +27,18 @@ void init_one_phymm(phymmap_t * initp){
     initp->pm_rsvmend = 0;
     initp->pm_prip = NULL;
     initp->pm_extp = NULL;
-    return;
 
+    return;
 }
 
 int set_phymem_desc(e820_map_t * e8p, phymmap_t * phymm) {
-    uint32_t ptype = 0, pstype = 0;
     if (NULL == e8p || NULL == phymm)
-    {
         return FALSE;
-    }
+
     init_one_phymm(phymm);
+
+    uint32_t ptype = 0, pstype = 0;
+    
     switch (e8p->type)
     {
         case RAM_USABLE:
@@ -62,18 +64,18 @@ int set_phymem_desc(e820_map_t * e8p, phymmap_t * phymm) {
         default:
             break;
     }
+
     if (0 == ptype)
-    {
         return FALSE;
-    }
+    
     phymm->pm_type = ptype;
     phymm->pm_stype = pstype;
     phymm->pm_flgs = PMR_F_X86_64;
     phymm->pm_saddr = e8p->addr;
     phymm->pm_lsize = e8p->size;
     phymm->pm_end = e8p->addr + e8p->size - 1;
+    
     return TRUE;
-
 }
 
 void phymm_swap(phymmap_t *s, phymmap_t *d) {
@@ -118,23 +120,25 @@ void init_phymm(kernel_desc_t * p_kernel_desc) {
 }
 
 bool_t ret_mpdesc_adrandsz(kernel_desc_t * p_kernel_desc, mpgdesc_t** p_mpdesc_arr, uint64_t * p_mpdescnr) {
-    if(p_kernel_desc == NULL || p_mpdesc_arr == NULL || p_mpdescnr == NULL) {
+    if(p_kernel_desc == NULL || p_mpdesc_arr == NULL || p_mpdescnr == NULL)
         return FALSE;
-    }
-    if(p_kernel_desc->mmap_nr < 1 || p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_sz != p_kernel_desc->mmap_nr * sizeof(phymmap_t)) {
+    
+    if(p_kernel_desc->mmap_nr < 1 || p_kernel_desc->mmap_adr == 0 || p_kernel_desc->mmap_sz != p_kernel_desc->mmap_nr * sizeof(phymmap_t))
         return FALSE;
-    }
+    
     phymmap_t * phymem_arr = p_kernel_desc->mmap_adr;
     uint64_t umemsz = 0, mpdescnr = 0;
+
     for(int i = 0; i < p_kernel_desc->mmap_nr; ++i){
         if(phymem_arr[i].pm_type == PMR_T_OSAPUSERRAM){
             umemsz += phymem_arr[i].pm_lsize;
             mpdescnr += (phymem_arr[i].pm_lsize >> 12);
         }
     }
-    if((umemsz >> 12) < 1 || mpdescnr < 1){
+
+    if((umemsz >> 12) < 1 || mpdescnr < 1)
         return FALSE;
-    }
+    
     *p_mpdesc_arr = p_kernel_desc->next_pg;
     *p_mpdescnr = mpdescnr;
     return TRUE;
@@ -146,9 +150,12 @@ void set_mpdesc(mpgdesc_t * mpdesc, uint64_t phy_adr) {
     mpdesc->mp_phyadr.paf_phyadr = tmp->paf_phyadr;
 }
 
+
+
 uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr) {
     phymmap_t * pm_arr = p_kernel_desc->mmap_adr;
     uint64_t mpnr = 0;
+    
     for(int i = 0; i < p_kernel_desc->mmap_nr; ++i) {
         if(pm_arr[i].pm_type == PMR_T_OSAPUSERRAM) {
             for(uint64_t mp_adr = pm_arr[i].pm_saddr; mp_adr < pm_arr[i].pm_end; mp_adr += 4096 ) {
@@ -159,6 +166,7 @@ uint64_t init_mpdesc_core(kernel_desc_t * p_kernel_desc, mpgdesc_t * mpdesc_arr)
             }
         }
     }
+    
     return mpnr;
 }
 
@@ -420,8 +428,8 @@ void init_merdiv(kernel_desc_t * p_kernel_desc) {
     }
 }
 
-void init_memmgrob(kernel_desc_t * p_kernel_desc) {
-    memmgrob_init(&memmgrob);
+void init_memmgrob(kernel_desc_t *p_kernel_desc) {
+    memmgrob_t_init(&memmgrob);
     memmgrob.mo_phymem_arr = (phymmap_t *) phyadr_to_viradr(p_kernel_desc->mmap_adr);
     memmgrob.mo_phymem_nr = p_kernel_desc->mmap_nr;
     memmgrob.mo_memarea_arr = (memarea_t *) phyadr_to_viradr(p_kernel_desc->ma_desc_arr);
@@ -443,7 +451,7 @@ void init_memmgrob(kernel_desc_t * p_kernel_desc) {
     memmgrob.mo_freepages = memmgrob.mo_maxpages - aidx;
 }
 
-void init_halmm(kernel_desc_t * p_kernel_desc) {
+void init_halmm(kernel_desc_t *p_kernel_desc) {
     init_phymm(p_kernel_desc);
     init_memmanager(p_kernel_desc);
     init_krloccupymm(p_kernel_desc);
